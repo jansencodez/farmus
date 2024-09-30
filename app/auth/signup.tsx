@@ -54,7 +54,7 @@ export default function SignUpScreen() {
     }
 
     try {
-      const response = await fetchWithTokenRefresh(`${baseUrl}api/auth/signup`, {
+      const response = await fetchWithTokenRefresh(`${baseUrl}/signup`, {
         method: 'POST',
         body: formData,
       });

@@ -35,8 +35,8 @@ export default function ProductCard({
   onDelete,
 }: ProductCardProps) {
   const { theme } = useTheme(); // Get current theme
-  const productImage = baseUrl + imageUrl;
-  const profilePicture = baseUrl + userProfilePicture;
+  const productImage = imageUrl;
+  const profilePicture = userProfilePicture;
   const router = useRouter();
   const [timeSinceUpload, setTimeSinceUpload] = useState(moment(createdAt).fromNow());
 

@@ -17,7 +17,7 @@ export default function ProductDetailScreen() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`${baseUrl}api/auth/products/${id}`);
+        const response = await fetch(`${baseUrl}/product?id=${id}`);
         if (!response.ok) throw new Error('Failed to fetch product data');
         const data = await response.json();
   
@@ -50,7 +50,7 @@ export default function ProductDetailScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Image source={{ uri:baseUrl+ product.imageUrl }} style={styles.image} />
+      <Image source={{ uri:product.imageUrl }} style={styles.image} />
       <View style={styles.content}>
         <Text style={styles.title}>{product.name}</Text>
         <Text style={styles.price}>{product.price}</Text>

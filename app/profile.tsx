@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, FlatList, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, FlatList, Alert, Image, ToastAndroid, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ProductCard from '@/components/custom/ProductCard';
@@ -25,46 +25,65 @@ export default function ProfileScreen() {
             try {
                 const token = await AsyncStorage.getItem('token');
                 if (token) {
-                    const userResponse = await fetchWithTokenRefresh(`${baseUrl}api/auth/profile`, {
+                    const userResponse = await fetchWithTokenRefresh(`${baseUrl}/profile`, {
                         method: 'GET',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     });
 
-                    const userData = await userResponse.json();
-
                     if (userResponse.ok) {
+                        const userText = await userResponse.text();
+                        const userData = JSON.parse(userText);
+
+                        // Set user data in state
                         setUser(userData.user);
                         setCurrentUserId(userData.user._id);
                         setName(userData.user.name);
                         setEmail(userData.user.email);
 
-                        const productDetailsPromises = userData.products.map(productId =>
-                            fetchWithTokenRefresh(`${baseUrl}api/auth/products/${productId}`, {
+                        // Fetch each product's details
+                        const productDetailsPromises = userData.products.map(async (productId) => {
+                            const productResponse = await fetchWithTokenRefresh(`${baseUrl}/product?id=${productId}`, {
                                 method: 'GET',
-                                headers: { 'Content-Type': 'application/json' },
-                            }).then(response => response.json())
-                        );
+                                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                            });
 
+                            if (!productResponse.ok) {
+                                const productErrorText = await productResponse.text();
+                                throw new Error(`Failed to fetch product: ${productErrorText}`);
+                            }
+
+                            const productText = await productResponse.text();
+                            const productData = JSON.parse(productText);
+                            return productData;
+                        });
+
+                        // Wait for all product details to be fetched
                         const productDetails = await Promise.all(productDetailsPromises);
-                        const formattedProducts = productDetails.map(product => ({
+
+                        // Format product details and set them in state
+                        const formattedProducts = productDetails.map((product) => ({
                             ...product,
-                            price: formatDecimal(product.price),
+                            price: formatDecimal(product.price), // Assuming formatDecimal is defined
                         }));
+
                         setProducts(formattedProducts);
                     } else {
-                        Alert.alert('Error', userData.message);
+                        const userErrorText = await userResponse.text();
+                        throw new Error(`Failed to fetch user profile: ${userErrorText}`);
                     }
                 } else {
-                    Alert.alert('Error', 'No authentication token found.');
+                    throw new Error('Token not available');
                 }
             } catch (error) {
-                Alert.alert('Error', 'An unexpected error occurred.');
-                console.error('Fetch User Data Error:', error);
+                // Show error message
+                ToastAndroid.show(error.message || 'Failed to load profile', ToastAndroid.SHORT);
             }
         };
 
         fetchUserData();
     }, []);
+    
+    
 
     const handleSaveChanges = async () => {
         try {
@@ -80,14 +99,14 @@ export default function ProfileScreen() {
 
                 const data = await response.json();
                 if (response.ok) {
-                    Alert.alert('Success', 'Profile updated successfully!');
+                    ToastAndroid.show('Successfully updated', ToastAndroid.SHORT);
                     setUser({ ...user, name, email });
                     setIsEditing(false);
                 } else {
-                    Alert.alert('Error', data.message);
+                    ToastAndroid.show('error occured', ToastAndroid.SHORT);
                 }
             } else {
-                Alert.alert('Error', 'No authentication token found.');
+                ToastAndroid.show('erro occured', ToastAndroid.SHORT);
             }
         } catch (error) {
             Alert.alert('Error', 'An unexpected error occurred.');
@@ -107,7 +126,7 @@ export default function ProfileScreen() {
         try {
             const token = await AsyncStorage.getItem('token');
             if (token) {
-                const response = await fetchWithTokenRefresh(`${baseUrl}api/auth/products/${productId}`, {
+                const response = await fetchWithTokenRefresh(`${baseUrl}api/products/${productId}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -146,13 +165,7 @@ export default function ProfileScreen() {
         />
     );
 
-    if (!user) {
-        return (
-            <SafeAreaView style={[styles.container, theme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
-                <Text style={[styles.title, theme === 'dark' ? styles.darkTitle : styles.lightTitle]}>Loading...</Text>
-            </SafeAreaView>
-        );
-    }
+    if (!user) return <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />;
 
     return (
         <SafeAreaView style={[styles.container, theme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
@@ -187,7 +200,7 @@ export default function ProfileScreen() {
                         <View style={styles.userInfo}>
                             <Pressable onPress={handleProfilePress}>
                                 <Image
-                                    source={{ uri: `${baseUrl}${user.profilePicture}` }}
+                                    source={{ uri: user.profilePicture }}
                                     style={styles.profilePicture}
                                 />
                             </Pressable>
@@ -216,12 +229,15 @@ export default function ProfileScreen() {
 
             <View style={styles.productsSection}>
                 <Text style={[styles.title, theme === 'dark' ? styles.darkTitle : styles.lightTitle]}>My Products</Text>
-                <FlatList
+                {!products&&<ActivityIndicator size="large" color="#4CAF50" style={styles.loader} /> }
+                {products&& <FlatList
                     data={products}
                     renderItem={renderItem}
                     keyExtractor={(item) => item._id}
                     contentContainerStyle={styles.productList}
-                />
+                />}
+                
+                
             </View>
         </SafeAreaView>
     );
@@ -316,5 +332,11 @@ const styles = StyleSheet.create({
   },
   productList: {
       paddingBottom: 20,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#C8E6C9',
   },
 });

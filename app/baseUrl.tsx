@@ -1,1 +1,1 @@
-export const baseUrl = 'http://192.168.100.133:5000/';
+export const baseUrl = 'https://farmusbackend.vercel.app/api';

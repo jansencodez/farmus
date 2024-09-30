@@ -5,6 +5,7 @@ import { baseUrl } from '../baseUrl';
 import { useTheme } from '../context/ThemeProvider';
 import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchWithTokenRefresh } from '../utils/auth';
 
 interface Product {
   _id: string;
@@ -34,7 +35,7 @@ export default function AllProductsScreen() {
       try {
         const token = await AsyncStorage.getItem('token');
         if (token) {
-          const userResponse = await fetch(`${baseUrl}api/auth/profile`, {
+          const userResponse = await fetchWithTokenRefresh(`${baseUrl}/profile`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -56,7 +57,7 @@ export default function AllProductsScreen() {
 
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`${baseUrl}api/auth/products`); // Replace with your backend URL
+        const response = await fetch(`${baseUrl}/products`); // Replace with your backend URL
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -81,7 +82,7 @@ export default function AllProductsScreen() {
 
         const userResponses = await Promise.all(
           uniqueUserIds.map(userId =>
-            fetch(`${baseUrl}api/auth/users/${userId}`)
+            fetch(`${baseUrl}/users?id=${userId}`)
           )
         );
 
@@ -134,6 +135,7 @@ export default function AllProductsScreen() {
         username={user?.name} // Assuming your user schema has 'username'
         userId={item.createdBy}
         category={item.category}
+        createdAt={item.createdAt}
         currentUserId={currentUserId}
       />
     );

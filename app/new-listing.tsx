@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, Alert, Image, ToastAndroid } from 'react-native';
+import { View, Text, StyleSheet,ScrollView, TextInput, Pressable, Alert, Image, ToastAndroid } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { fetchWithTokenRefresh } from './utils/auth'; 
 import { baseUrl } from './baseUrl';
+
 
 export default function NewListingScreen() {
   const router = useRouter();
@@ -36,65 +37,74 @@ export default function NewListingScreen() {
 
   const handleCreateListing = async () => {
     try {
-      // Validate and format price
-      const numericPrice = parseFloat(price);
-      if (isNaN(numericPrice) || numericPrice < 0) {
-        Alert.alert('Invalid Price', 'Price must be a non-negative number.');
-        return;
-      }
+        // Validate and format price
+        const numericPrice = parseFloat(price);
+        if (isNaN(numericPrice) || numericPrice < 0) {
+            Alert.alert('Invalid Price', 'Price must be a non-negative number.');
+            return;
+        }
 
-      const formattedPrice = numericPrice.toFixed(2).toString();
+        const formattedPrice = numericPrice.toFixed(2).toString(); // Ensure it's in string format
 
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        Alert.alert('Error', 'User not authenticated. Please sign in.');
-        return;
-      }
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+            Alert.alert('Error', 'User not authenticated. Please sign in.');
+            return;
+        }
 
-      const formData = new FormData();
-      if (imageUri) {
-        formData.append('productImage', {
-          uri: imageUri,
-          type: 'image/jpeg',
-          name: 'product.jpg',
-        } as any);
-      }
-      formData.append('name', name);
-      formData.append('description', description);
-      formData.append('price', formattedPrice); // Ensure price is formatted to two decimal places
-      formData.append('category', category); // Append the category to the form data
+        const formData = new FormData();
+        if (imageUri) {
+            formData.append('productImage', {
+                uri: imageUri,
+                type: 'image/jpeg',
+                name: 'product.jpg',
+            });
+        }
+        formData.append('name', name);
+        formData.append('description', description);
+        formData.append('price', formattedPrice);
+        formData.append('category', category);
 
-      const response = await fetchWithTokenRefresh(`${baseUrl}api/auth/create-listing`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
-      });
+        // Fetch request
+        const response = await fetchWithTokenRefresh(`${baseUrl}/create-listing`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
 
-      const responseData = await response.json();
+        // Log response status and raw response
+        const responseText = await response.text(); // Get raw response text
+        console.log('Response Status:', response.status);
+        console.log('Raw Response:', responseText); // Log raw response
 
-      if (!response.ok) {
-        throw new Error(responseData.message || 'Network response was not ok');
-      }
+        const responseData = JSON.parse(responseText);
 
-      ToastAndroid.show('Successfully added', ToastAndroid.SHORT);
-      // Clear the form or navigate away after successful submission
-      router.push('/');
-      setName('');
-      setDescription('');
-      setPrice('');
-      setCategory(''); // Reset category
-      setImageUri(null);
+        if (!response.ok) {
+            throw new Error(responseData.message || 'Network response was not ok');
+        }
+
+        ToastAndroid.show('Successfully added', ToastAndroid.SHORT);
+        router.push('/');
+        setName('');
+        setDescription('');
+        setPrice('');
+        setCategory('');
+        setImageUri(null);
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to create listing. Please try again.');
-      ToastAndroid.show(error.message, ToastAndroid.SHORT);
+        Alert.alert('Error', error.message || 'Failed. Please try again.');
+        console.log('Fetch Error:', error);
+        ToastAndroid.show(error.message, ToastAndroid.SHORT);
     }
-  };
+};
+
+
+
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>New Product</Text>
       <TextInput
         style={styles.input}
@@ -130,9 +140,9 @@ export default function NewListingScreen() {
         <Text style={styles.buttonText}>Pick an Image</Text>
       </Pressable>
       <Pressable style={styles.button} onPress={handleCreateListing}>
-        <Text style={styles.buttonText}>Create Listing</Text>
+        <Text style={styles.buttonText}>Create</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -140,8 +150,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20,
+    padding: 10,
+    overflow: 'visible',
     backgroundColor: '#C8E6C9',
+    height:'auto'
   },
   title: {
     fontSize: 24,

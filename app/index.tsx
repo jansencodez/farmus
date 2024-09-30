@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, FlatList, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, FlatList, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import ProductCard from '@/components/custom/ProductCard'; // Adjust the import path as needed
 import { useAuth } from '@/app/context/AuthContext'; // Import the Auth context or hook
@@ -36,7 +36,7 @@ export default function HomeScreen() {
     try {
       const token = checkAuthStatus; // Fetch the token from auth context
       if (token) {
-        const response = await fetchWithTokenRefresh(`${baseUrl}api/auth/products/${productId}`, {
+        const response = await fetchWithTokenRefresh(`${baseUrl}/delete?id=${productId}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ export default function HomeScreen() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetchWithTokenRefresh(`${baseUrl}api/auth/profile`, {
+        const response = await fetchWithTokenRefresh(`${baseUrl}/profile`, {
           method: 'GET',
         });
 
@@ -75,13 +75,13 @@ export default function HomeScreen() {
         }
       } catch (error) {
         console.error('Error fetching user data:', error.message);
-        setError('Failed to fetch user data. Please try again later.');
+        setError('Failed to fetch current user data. Please try again later.');
       }
     };
 
     const fetchProducts = async () => {
       try {
-        const response = await fetchWithTokenRefresh(`${baseUrl}api/auth/products`, {
+        const response = await fetchWithTokenRefresh(`${baseUrl}/products`, {
           method: 'GET',
         });
 
@@ -102,7 +102,7 @@ export default function HomeScreen() {
 
         const userResponses = await Promise.all(
           uniqueUserIds.map(userId =>
-            fetchWithTokenRefresh(`${baseUrl}api/auth/users/${userId}`, {
+            fetchWithTokenRefresh(`${baseUrl}/users?id=${userId}`, {
               method: 'GET',
             })
           )
@@ -129,7 +129,6 @@ export default function HomeScreen() {
         setUsers(userMap);
 
       } catch (error) {
-        console.error('Error fetching products:', error.message);
         setError('Failed to load products. Please try again later.');
       }
     };
@@ -176,6 +175,7 @@ export default function HomeScreen() {
 
       {/* Featured Products */}
       <Text style={[styles.sectionTitle, { color: theme === 'light' ? '#388E3C' : '#FFFFFF' }]}>Featured Products</Text>
+      {!products&&<ActivityIndicator size="large" color="#4CAF50" style={styles.loader} /> }
       <FlatList
         data={products}
         renderItem={renderItem}
@@ -264,5 +264,11 @@ const styles = StyleSheet.create({
     color: '#FF5722', // Orange for error message
     textAlign: 'center',
     marginBottom: 20,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#C8E6C9',
   },
 });
