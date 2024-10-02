@@ -62,7 +62,7 @@ export default function ProductDetailScreen() {
         style={styles.backButton}
         onPress={() => router.back()} // Navigate back to the previous screen
       >
-        <Text style={styles.backButtonText}>Back to Home</Text>
+        <Text style={styles.backButtonText}>Back</Text>
       </Pressable>
     </ScrollView>
   );

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, FlatList, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, FlatList, Alert, ActivityIndicator, ToastAndroid } from 'react-native';
 import { useRouter } from 'expo-router';
 import ProductCard from '@/components/custom/ProductCard'; // Adjust the import path as needed
 import { useAuth } from '@/app/context/AuthContext'; // Import the Auth context or hook
@@ -52,11 +52,10 @@ export default function HomeScreen() {
           Alert.alert('Error', data.message);
         }
       } else {
-        Alert.alert('Error', 'No authentication token found.');
+        ToastAndroid.show('not signed in',ToastAndroid.SHORT)
       }
     } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred.');
-      console.error('Delete Product Error:', error);
+      ToastAndroid.show('failed',ToastAndroid.SHORT)
     }
   };
 
@@ -74,8 +73,7 @@ export default function HomeScreen() {
           throw new Error('Failed to fetch user data');
         }
       } catch (error) {
-        console.error('Error fetching user data:', error.message);
-        setError('Failed to fetch current user data. Please try again later.');
+        
       }
     };
 
@@ -196,14 +194,14 @@ export default function HomeScreen() {
             style={[styles.button, styles.createListingButton]}
             onPress={() => router.push('/new-listing')}
           >
-            <Text style={styles.buttonText}>Create New Listing</Text>
+            <Text style={styles.buttonText}>Add Item</Text>
           </Pressable>
         ) : (
           <Pressable
             style={[styles.button, styles.signInButton]}
             onPress={() => router.push('/auth/signIn')}
           >
-            <Text style={styles.buttonText}>Sign In to Create Listing</Text>
+            <Text style={styles.buttonText}>Sign In to Add items</Text>
           </Pressable>
         )}
       </View>

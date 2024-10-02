@@ -89,7 +89,7 @@ export default function ProfileScreen() {
         try {
             const token = await AsyncStorage.getItem('token');
             if (token) {
-                const response = await fetchWithTokenRefresh(`${baseUrl}api/auth/update`, {
+                const response = await fetchWithTokenRefresh(`${baseUrl}/update`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
