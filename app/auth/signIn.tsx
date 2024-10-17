@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { baseUrl } from '../baseUrl';
 import { fetchWithTokenRefresh } from '../utils/auth';
+import { useAuth } from '../context/AuthContext';
 
 export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false); // Loading state
   const router = useRouter();
+  const {signIn}=useAuth();
 
   const handleSignIn = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please enter both email and password.');
       return;
     }
-  
     setLoading(true);
     try {
       const response = await fetchWithTokenRefresh(`${baseUrl}/signin`, {
@@ -36,7 +36,7 @@ export default function SignInScreen() {
   
       const data = JSON.parse(textResponse); // Parse the response text
   
-      await AsyncStorage.setItem('token', data.token);
+      await signIn(data.token);
       router.push('/profile');
     } catch (error) {
       Alert.alert('Error', error.message || 'An unexpected error occurred.');
@@ -71,6 +71,14 @@ export default function SignInScreen() {
           <ActivityIndicator color="#FFFFFF" /> // Loading spinner
         ) : (
           <Text style={styles.buttonText}>Sign In</Text>
+        )}
+      </Pressable>
+
+      <Pressable style={styles.button} onPress={()=>router.push('/auth/signup')} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator color="#FFFFFF" /> // Loading spinner
+        ) : (
+          <Text style={styles.buttonText}>Sign Up</Text>
         )}
       </Pressable>
     </View>

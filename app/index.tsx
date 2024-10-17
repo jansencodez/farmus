@@ -31,9 +31,12 @@ export default function HomeScreen() {
   const [users, setUsers] = useState<{ [key: string]: User }>({});
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteProduct = async (productId: string) => {
     try {
+      setIsDeleting(true)
       const token = checkAuthStatus; // Fetch the token from auth context
       if (token) {
         const response = await fetchWithTokenRefresh(`${baseUrl}/delete?id=${productId}`, {
@@ -47,9 +50,11 @@ export default function HomeScreen() {
         const data = await response.json();
         if (response.ok) {
           setProducts(products.filter(product => product._id !== productId));
-          Alert.alert('Success', 'Product deleted successfully!');
+          setIsDeleting(false);
+          ToastAndroid.show("successful", ToastAndroid.SHORT);
+
         } else {
-          Alert.alert('Error', data.message);
+          ToastAndroid.show('not successful',ToastAndroid.SHORT)
         }
       } else {
         ToastAndroid.show('not signed in',ToastAndroid.SHORT)
@@ -76,13 +81,14 @@ export default function HomeScreen() {
         
       }
     };
-
+    
     const fetchProducts = async () => {
+      
       try {
+        setIsLoading(true)
         const response = await fetchWithTokenRefresh(`${baseUrl}/products`, {
           method: 'GET',
         });
-
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -93,6 +99,7 @@ export default function HomeScreen() {
           price: parseFloat(product.price),
         }));
         setProducts(processedProducts);
+        setIsLoading(false);
 
         // Fetch user details
         const userIds = processedProducts.map(product => product.createdBy);
@@ -130,7 +137,6 @@ export default function HomeScreen() {
         setError('Failed to load products. Please try again later.');
       }
     };
-
     fetchUserData();
     fetchProducts();
   }, []);
@@ -152,6 +158,7 @@ export default function HomeScreen() {
         category={item.category}
         createdAt={item.createdAt}
         onDelete={handleDeleteProduct}
+        isDeleting={isDeleting}
       />
     );
   };
@@ -173,12 +180,15 @@ export default function HomeScreen() {
 
       {/* Featured Products */}
       <Text style={[styles.sectionTitle, { color: theme === 'light' ? '#388E3C' : '#FFFFFF' }]}>Featured Products</Text>
-      {!products&&<ActivityIndicator size="large" color="#4CAF50" style={styles.loader} /> }
+      {isLoading&&<ActivityIndicator size="large" color="#4CAF50" style={styles.loader} /> }
       <FlatList
         data={products}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.productList}
+        numColumns={2} // Number of columns in the grid
+        columnWrapperStyle={styles.row}
+
       />
 
       {/* Navigation Options */}
@@ -212,13 +222,16 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 10,
   },
   welcomeText: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 4,
     textAlign: 'center',
+  },
+  row: {
+    justifyContent: 'space-evenly',
   },
   searchInput: {
     height: 40,
@@ -230,7 +243,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   productList: {
     marginBottom: 20,

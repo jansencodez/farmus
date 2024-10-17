@@ -9,9 +9,11 @@ import { useTheme } from './context/ThemeProvider';
 import { baseUrl } from './baseUrl';
 import { getGreeting } from './utils/getGreeting';
 import { formatDecimal } from './utils/formatDecimal';
+import { useAuth } from './context/AuthContext';
 
 export default function ProfileScreen() {
     const [user, setUser] = useState(null);
+    const {checkAuthStatus, isLoggedIn} = useAuth();
     const [products, setProducts] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState('');
@@ -19,6 +21,8 @@ export default function ProfileScreen() {
     const [currentUserId, setCurrentUserId] = useState('');
     const router = useRouter();
     const { theme } = useTheme(); // Use the theme hook
+    const [isLoading, setIsLoading] = useState(true);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -42,6 +46,7 @@ export default function ProfileScreen() {
 
                         // Fetch each product's details
                         const productDetailsPromises = userData.products.map(async (productId) => {
+                            setIsLoading(true)
                             const productResponse = await fetchWithTokenRefresh(`${baseUrl}/product?id=${productId}`, {
                                 method: 'GET',
                                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -65,7 +70,7 @@ export default function ProfileScreen() {
                             ...product,
                             price: formatDecimal(product.price), // Assuming formatDecimal is defined
                         }));
-
+                        setIsLoading(false)
                         setProducts(formattedProducts);
                     } else {
                         const userErrorText = await userResponse.text();
@@ -122,32 +127,35 @@ export default function ProfileScreen() {
         }
     };
 
-    const handleDeleteProduct = async (productId) => {
+    const handleDeleteProduct = async (productId: string) => {
         try {
-            const token = await AsyncStorage.getItem('token');
-            if (token) {
-                const response = await fetchWithTokenRefresh(`${baseUrl}api/products/${productId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                const data = await response.json();
-                if (response.ok) {
-                    setProducts(products.filter(product => product._id !== productId));
-                    Alert.alert('Success', 'Product deleted successfully!');
-                } else {
-                    Alert.alert('Error', data.message);
-                }
+          setIsDeleting(true)
+          const token = checkAuthStatus; // Fetch the token from auth context
+          if (token) {
+            const response = await fetchWithTokenRefresh(`${baseUrl}/delete?id=${productId}`, {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+              },
+            });
+    
+            const data = await response.json();
+            if (response.ok) {
+              setProducts(products.filter(product => product._id !== productId));
+              setIsDeleting(false);
+              ToastAndroid.show("successful", ToastAndroid.SHORT);
+    
             } else {
-                Alert.alert('Error', 'No authentication token found.');
+              ToastAndroid.show('not successful',ToastAndroid.SHORT)
             }
+          } else {
+            ToastAndroid.show('not signed in',ToastAndroid.SHORT)
+          }
         } catch (error) {
-            Alert.alert('Error', 'An unexpected error occurred.');
-            console.error('Delete Product Error:', error);
+          ToastAndroid.show('failed',ToastAndroid.SHORT)
         }
-    };
+      };
 
     const renderItem = ({ item }) => (
         <ProductCard
@@ -165,7 +173,7 @@ export default function ProfileScreen() {
         />
     );
 
-    if (!user) return <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />;
+    if (!isLoggedIn || !user){return <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />;}
 
     return (
         <SafeAreaView style={[styles.container, theme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
@@ -229,11 +237,13 @@ export default function ProfileScreen() {
 
             <View style={styles.productsSection}>
                 <Text style={[styles.title, theme === 'dark' ? styles.darkTitle : styles.lightTitle]}>My Products</Text>
-                {!products&&<ActivityIndicator size="large" color="#4CAF50" style={styles.loader} /> }
+                {isLoading&&<ActivityIndicator size="large" color="#4CAF50" /> }
                 {products&& <FlatList
                     data={products}
                     renderItem={renderItem}
                     keyExtractor={(item) => item._id}
+                    numColumns={2}
+                    columnWrapperStyle={styles.row}
                     contentContainerStyle={styles.productList}
                 />}
                 
@@ -246,7 +256,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
       flex: 1,
-      padding: 20,
+      padding: 10,
   },
   darkContainer: {
       backgroundColor: '#1E1E1E',
@@ -332,6 +342,9 @@ const styles = StyleSheet.create({
   },
   productList: {
       paddingBottom: 20,
+  },
+  row:{
+    justifyContent: "space-evenly",
   },
   loader: {
     flex: 1,

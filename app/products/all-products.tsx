@@ -152,6 +152,8 @@ export default function AllProductsScreen() {
           renderItem={renderItem}
           keyExtractor={(item) => item._id} // Use _id as key
           contentContainerStyle={styles.productList}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
         />
       )}
     </View>
@@ -187,5 +189,8 @@ const styles = StyleSheet.create({
     color: 'red',
     fontSize: 16,
     textAlign: 'center',
+  },
+  row:{
+    justifyContent: "space-evenly",
   },
 });

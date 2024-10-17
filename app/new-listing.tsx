@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { fetchWithTokenRefresh } from './utils/auth'; 
 import { baseUrl } from './baseUrl';
-
+import {Picker} from "@react-native-picker/picker";
 
 export default function NewListingScreen() {
   const router = useRouter();
@@ -45,7 +45,7 @@ export default function NewListingScreen() {
         }
 
         const formattedPrice = numericPrice.toFixed(2).toString(); // Ensure it's in string format
-
+        console.log(category, imageUri,name)
         const token = await AsyncStorage.getItem('token');
         if (!token) {
             Alert.alert('Error', 'User not authenticated. Please sign in.');
@@ -113,10 +113,11 @@ export default function NewListingScreen() {
         onChangeText={setName}
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, {minHeight:40,height:'auto'}]}
         placeholder="Description"
         value={description}
         onChangeText={setDescription}
+        multiline
       />
       <TextInput
         style={styles.input}
@@ -125,12 +126,22 @@ export default function NewListingScreen() {
         onChangeText={setPrice}
         keyboardType="numeric"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Category" // New category input field
-        value={category}
-        onChangeText={setCategory}
-      />
+       <View style={styles.picker}>
+        <Text style={{paddingTop:10, color:"white"}}>Select Category: </Text>
+        <Picker
+        selectedValue={category}
+        style={{height:20, width:150, padding:0, backgroundColor:"#4CAF50", color:"white"}}
+        onValueChange={setCategory}
+      >
+          <Picker.Item label='Vegetables' value="Vegetables"/>
+          <Picker.Item label='Fruits' value='Fruits'/>
+          <Picker.Item label='Grains' value='Grains'/>
+          <Picker.Item label='Dairy' value='Dairy'/>
+          <Picker.Item label='Meat' value='Meat'/>
+          <Picker.Item label='Poultry' value='Poultry'/>
+          <Picker.Item label='Others' value='Others'/>
+      </Picker>
+       </View>
       {imageUri ? (
         <Image source={{ uri: imageUri }} style={styles.image} />
       ) : (
@@ -148,12 +159,9 @@ export default function NewListingScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
+    height:'auto',
     padding: 10,
-    overflow: 'visible',
-    backgroundColor: '#C8E6C9',
-    height:'auto'
+    backgroundColor: '#C8E6C9'
   },
   title: {
     fontSize: 24,
@@ -183,13 +191,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  picker:{
+    backgroundColor:'#4CAF50',
+    margin:10,
+    height:80,
+    borderRadius: 10,
+    paddingLeft:10,
+  },
   image: {
     width: 300,
     height: 350,
     marginTop: 10,
     marginBottom: 20,
     alignSelf: 'center',
-    resizeMode: 'cover',
+    resizeMode: 'contain',
   },
   noImageText: {
     textAlign: 'center',

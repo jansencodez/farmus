@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ProductCard from '@/components/custom/ProductCard'; // Adjust the import path as needed
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
+import { fetchWithTokenRefresh } from '../utils/auth';
+import { baseUrl } from '../baseUrl';
 
 export default function ProfileScreen() {
   const [user, setUser] = useState(null);
@@ -16,14 +18,13 @@ export default function ProfileScreen() {
   const router = useRouter();
   const route = useRoute();
   const { id } = route.params;
-  const baseUrl = 'http://192.168.100.133:5000/'; // Replace with your actual server URL
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
         if (token) {
-          const userResponse = await fetch(`${baseUrl}api/auth/users/${id}`, {
+          const userResponse = await fetchWithTokenRefresh(`${baseUrl}/users?id=${id}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -39,15 +40,21 @@ export default function ProfileScreen() {
             setEmail(userData.email);
   
             // Fetch product details
-            const productDetailsPromises = userData.products.map(product =>
-              fetch(`${baseUrl}api/auth/products/${product}`, {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`,
-                },
-              }).then(response => response.json())
-            );
+            const productDetailsPromises = userData.products.map(async (productId) => {
+              const productResponse = await fetchWithTokenRefresh(`${baseUrl}/product?id=${productId}`, {
+                  method: 'GET',
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              });
+
+              if (!productResponse.ok) {
+                  const productErrorText = await productResponse.text();
+                  throw new Error(`Failed to fetch product: ${productErrorText}`);
+              }
+
+              const productText = await productResponse.text();
+              const productData = JSON.parse(productText);
+              return productData;
+          });
   
             const productDetails = await Promise.all(productDetailsPromises);
             console.log('Product Details:', productDetails); // Add this line
@@ -77,7 +84,7 @@ export default function ProfileScreen() {
     try {
       const token = await AsyncStorage.getItem('token');
       if (token) {
-        const response = await fetch(`${baseUrl}api/auth/update`, {
+        const response = await fetch(`${baseUrl}api/update`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -169,7 +176,7 @@ export default function ProfileScreen() {
             <View style={styles.userInfo}>
               <Pressable onPress={handleProfilePress}>
                 <Image
-                  source={{ uri: `${baseUrl}${user.profilePicture}` }}
+                  source={{uri: user.profilePicture}}
                   style={styles.profilePicture}
                 />
               </Pressable>

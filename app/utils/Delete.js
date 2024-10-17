@@ -1,14 +1,10 @@
-import { Alert } from "react-native";
-import { useAuth } from "../context/AuthContext";
 
-
-
-const handleDeleteProduct = async (productId: string) => {
-  const { isLoggedIn, checkAuthStatus } = useAuth();
+const handleDeleteProduct = async (productId: string, checkAuthStatus, isDeleting) => {
   try {
+    setIsDeleting(true)
     const token = checkAuthStatus; // Fetch the token from auth context
     if (token) {
-      const response = await fetchWithTokenRefresh(`${baseUrl}api/auth/products/${productId}`, {
+      const response = await fetchWithTokenRefresh(`${baseUrl}/delete?id=${productId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -19,16 +15,17 @@ const handleDeleteProduct = async (productId: string) => {
       const data = await response.json();
       if (response.ok) {
         setProducts(products.filter(product => product._id !== productId));
-        Alert.alert('Success', 'Product deleted successfully!');
+        setIsDeleting(false);
+        ToastAndroid.show("successful", ToastAndroid.SHORT);
+
       } else {
-        Alert.alert('Error', data.message);
+        ToastAndroid.show('not successful',ToastAndroid.SHORT)
       }
     } else {
-      Alert.alert('Error', 'No authentication token found.');
+      ToastAndroid.show('not signed in',ToastAndroid.SHORT)
     }
   } catch (error) {
-    Alert.alert('Error', 'An unexpected error occurred.');
-    console.error('Delete Product Error:', error);
+    ToastAndroid.show('failed',ToastAndroid.SHORT)
   }
 };
 

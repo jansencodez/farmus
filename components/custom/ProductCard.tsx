@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
+import { View, Text, Image, StyleSheet, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/app/context/ThemeProvider';
-import { baseUrl } from '@/app/baseUrl';
 import moment from 'moment'; // Moment.js for time formatting
+import { fetchWithTokenRefresh } from '@/app/utils/auth';
 
 interface ProductCardProps {
   title: string;
@@ -18,6 +18,7 @@ interface ProductCardProps {
   category: string;
   createdAt: string;
   onDelete: (productId: string) => void;
+  isDeleting: boolean;
 }
 
 export default function ProductCard({
@@ -33,12 +34,14 @@ export default function ProductCard({
   category,
   createdAt,
   onDelete,
+  isDeleting,
 }: ProductCardProps) {
   const { theme } = useTheme(); // Get current theme
   const productImage = imageUrl;
   const profilePicture = userProfilePicture;
   const router = useRouter();
   const [timeSinceUpload, setTimeSinceUpload] = useState(moment(createdAt).fromNow());
+  const [isBuying, setIsBuying] = useState(false); // State to manage buying status
 
   // Handle image loading errors
   const handleImageError = (e: any) => {
@@ -53,6 +56,40 @@ export default function ProductCard({
 
     return () => clearInterval(interval); // Clean up interval on component unmount
   }, [createdAt]);
+
+  // Function to handle buying the product
+  const handleBuy = async () => {
+    setIsBuying(true); // Set buying state to true
+    const amount = parseFloat(price); // Convert price to float
+
+    try {
+      const response = await fetchWithTokenRefresh('https://farmus-wallet-backend.vercel.app/api/wallet/transact', { // Update with your endpoint
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          itemId: productId,
+          amount,
+          sellerId: userId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Purchase Successful', data.message);
+        // Optionally refresh user balance or product list
+      } else {
+        Alert.alert('Error', data.message || 'Failed to purchase the product');
+      }
+    } catch (error) {
+      console.error('Error during purchase:', error);
+      Alert.alert('Error', 'An error occurred while processing your purchase');
+    } finally {
+      setIsBuying(false); // Reset buying state
+    }
+  };
 
   // Define dynamic styles based on theme
   const styles = getStyles(theme);
@@ -71,21 +108,6 @@ export default function ProductCard({
           accessibilityLabel={`Image of ${title}`}
         />
       </Pressable>
-
-      {/* Product Details */}
-      <View style={styles.details}>
-        <Pressable
-          onPress={() => router.push(`/product/${productId}`)} // Navigate to ProductDetailScreen
-          accessibilityLabel={`View details of ${title}`}
-        >
-          <Text style={styles.productTitle}>{title}</Text>
-        </Pressable>
-        <Text style={styles.productPrice}>Ksh.{price}</Text>
-        <Text style={styles.productDescription}>{description}</Text>
-        <Text style={styles.productCategory}>Category: {category}</Text>
-        <Text style={styles.timeSinceUpload}>Uploaded {timeSinceUpload}</Text>
-      </View>
-
       {/* User Info */}
       <View style={styles.userInfo}>
         <Pressable
@@ -100,11 +122,25 @@ export default function ProductCard({
           />
         </Pressable>
         <Pressable
-          onPress={() => currentUserId===userId?router.push('/profile'): router.push(`/users/${userId}`)}
+          onPress={() => currentUserId === userId ? router.push('/profile') : router.push(`/users/${userId}`)}
           accessibilityLabel={`Go to ${username}'s profile`}
         >
           <Text style={styles.username}>{username}</Text>
         </Pressable>
+      </View>
+
+      {/* Product Details */}
+      <View style={styles.details}>
+        <Pressable
+          onPress={() => router.push(`/product/${productId}`)} // Navigate to ProductDetailScreen
+          accessibilityLabel={`View details of ${title}`}
+        >
+          <Text style={styles.timeSinceUpload}>Uploaded {timeSinceUpload}</Text>
+          <Text style={styles.productTitle}>{title}</Text>
+        </Pressable>
+        <Text style={styles.productPrice}>Ksh.{price}</Text>
+        <Text style={styles.productCategory}>Category: {category}</Text>
+        <Text style={styles.productDescription} numberOfLines={1} ellipsizeMode='tail'>{description}</Text>
       </View>
 
       {/* Conditional Buttons */}
@@ -116,13 +152,22 @@ export default function ProductCard({
             style={styles.deleteButton}
             onPress={() => onDelete(productId)}
           >
-            <Text style={styles.deleteButtonText}>Delete</Text>
+            {isDeleting && <ActivityIndicator color="#FFFFFF" />}
+            {!isDeleting && <Text style={styles.deleteButtonText}>Delete</Text>}
           </Pressable>
         </View>
       ) : (
         // Show "Buy" button for non-posting users
-        <Pressable style={styles.buyButton}>
-          <Text style={styles.buyButtonText}>Buy</Text>
+        <Pressable
+          style={styles.buyButton}
+          onPress={handleBuy}
+          disabled={isBuying} // Disable button during transaction
+        >
+          {isBuying ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.buyButtonText}>Buy</Text>
+          )}
         </Pressable>
       )}
     </View>
@@ -140,14 +185,16 @@ const getStyles = (theme: string) => {
       overflow: 'hidden',
       marginBottom: 20,
       elevation: 3,
+      width: 160,
+      height: 300,
     },
     productImage: {
       width: '100%',
-      height: 200,
+      height: 110,
       resizeMode: 'cover',
     },
     details: {
-      padding: 10,
+      padding: 2,
     },
     productTitle: {
       fontSize: 18,
@@ -161,28 +208,28 @@ const getStyles = (theme: string) => {
     productDescription: {
       fontSize: 14,
       color: isDarkMode ? '#BBBBBB' : '#666666',
-      marginTop: 5,
+      marginTop: 1,
     },
     productCategory: {
       fontSize: 14,
       color: isDarkMode ? '#AAAAAA' : '#444444',
-      marginTop: 5,
+      marginTop: 1,
     },
     timeSinceUpload: {
       fontSize: 12,
       color: isDarkMode ? '#888888' : '#999999',
-      marginTop: 5,
+      marginTop: 1,
     },
     userInfo: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 10,
+      padding: 2,
       borderTopWidth: 1,
       borderTopColor: isDarkMode ? '#444444' : '#E0E0E0',
     },
     profileImage: {
-      width: 40,
-      height: 40,
+      width: 25,
+      height: 25,
       borderRadius: 20,
       marginRight: 10,
     },
@@ -225,7 +272,7 @@ const getStyles = (theme: string) => {
     label: {
       fontSize: 16,
       fontWeight: 'bold',
-      color: isDarkMode ? '#4CAF50' : '#388E3C',
+      color: isDarkMode ? '#FFFFFF' : '#000000',
     },
   });
 };

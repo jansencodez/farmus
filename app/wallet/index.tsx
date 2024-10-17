@@ -14,20 +14,20 @@ export default function WalletScreen() {
   useEffect(() => {
     const fetchBalance = async () => {
       try {
-        console.log('Fetching wallet balance...');
-        const response = await fetchWithTokenRefresh(`${baseUrl}api/auth/balance`, {
+        console.log('Fetching balance...'); // Log before fetching
+        const response = await fetchWithTokenRefresh('https://farmus-wallet-backend.vercel.app/api/wallet/balance', {
           method: 'GET',
         });
-        
+  
+        console.log('Response Status:', response.status); // Log the response status
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+  
         const data = await response.json();
         console.log('API Response:', data);
-        
-        // Ensure the property name matches what your API returns
-        setBalance(data.balance||0); 
+  
+        setBalance(data.balance || 0);
       } catch (error) {
         console.error('Error fetching wallet details:', error);
         Alert.alert('Error', error.message || 'Failed to fetch wallet details.');
@@ -35,6 +35,7 @@ export default function WalletScreen() {
     };
     fetchBalance();
   }, []);
+  
 
   return (
     <View style={[styles.container, { backgroundColor: theme === 'light' ? '#F5F5F5' : '#424242' }]}>

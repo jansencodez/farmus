@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, Alert, ToastAndroid } from 'react-native';
 import { fetchWithTokenRefresh } from '../utils/auth';
 import { baseUrl } from '../baseUrl';
 
@@ -14,7 +14,7 @@ export default function AddFundsScreen() {
         return;
       }
 
-      const response = await fetchWithTokenRefresh(`${baseUrl}api/auth/deposit-funds`, {
+      const response = await fetchWithTokenRefresh('https://farmus-wallet-backend.vercel.app/api/wallet/deposit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ export default function AddFundsScreen() {
         throw new Error(data.message || 'Failed to add funds.');
       }
 
-      Alert.alert('Success', `Funds added successfully. New balance: $${data.balance}`);
+      ToastAndroid.show("Successful", ToastAndroid.SHORT)
       setAmount('');
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to add funds.');
