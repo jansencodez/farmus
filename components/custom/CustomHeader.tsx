@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TouchableOpacity, TextComponent } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/app/context/AuthContext';
 import { useTheme } from '@/app/context/ThemeProvider';
+import { ThemedText } from '../ThemedText';
+import { ThemedView } from '../ThemedView';
 
 export default function CustomHeader() {
   const [menuVisible, setMenuVisible] = useState(false);
@@ -37,9 +39,18 @@ export default function CustomHeader() {
           <TouchableOpacity onPress={toggleMenu} style={styles.profileButton}>
             <Ionicons name="menu-outline" size={30} color={theme === 'light' ? '#FFFFFF' : '#E0E0E0'} />
           </TouchableOpacity>
+          <TouchableOpacity onPress={()=>{}} style={styles.cart}>
+            <Ionicons name="cart-outline" size={30} color={theme=='light'?"#FFFFFF": "#E0E0E0"}/>
+            <Pressable style={styles.itemsNumber} onPress={()=>{
+              setMenuVisible(!menuVisible);
+              router.push("/Cart");
+            }}>
+              <ThemedText>1</ThemedText>
+            </Pressable>
+          </TouchableOpacity>
 
           {menuVisible && (
-            <View style={[styles.dropdownMenu, { backgroundColor: theme === 'light' ? '#FFFFFF' : '#424242' }]}>
+            <ThemedView style={[styles.dropdownMenu]}>
               <Pressable
                 style={styles.menuItem}
                 onPress={() => {
@@ -115,7 +126,7 @@ export default function CustomHeader() {
                   </Pressable>
                 </>
               )}
-            </View>
+            </ThemedView>
           )}
         </View>
       </View>
@@ -144,6 +155,27 @@ const styles = StyleSheet.create({
   },
   profileButton: {
     padding: 5,
+  },
+  cart:{
+    padding:5,
+    display:'flex',
+    position:'relative',
+  },
+  itemsNumber:{
+
+    position:'absolute',
+    display:"flex",
+    justifyContent:"center",
+    alignItems:"center",
+    textAlign:"center",
+    flex:1,
+    top:-2,
+    left:18,
+    backgroundColor:"red",
+    padding:4,
+    width:20,
+    height:20,
+    borderRadius:10,
   },
   dropdownMenu: {
     flex: 1,

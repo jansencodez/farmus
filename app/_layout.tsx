@@ -25,6 +25,7 @@ function LayoutContent() {
       <Stack.Screen name='settings/theme' options={{title:'theme'}}/>
       <Stack.Screen name="wallet" options={{ title:'wallet'}}/>
       <Stack.Screen name='settings/reset-password' options={{title:'reset password'}}/>
+      <Stack.Screen name="cart" options={{title:'my cart'}}/>
     </Stack>
   );
 }
