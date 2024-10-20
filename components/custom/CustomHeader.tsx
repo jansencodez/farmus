@@ -36,18 +36,20 @@ export default function CustomHeader() {
         <Text style={[styles.title, { color: theme === 'light' ? '#FFFFFF' : '#E0E0E0' }]}>Farmus</Text>
 
         <View style={styles.rightSection}>
-          <TouchableOpacity onPress={toggleMenu} style={styles.profileButton}>
-            <Ionicons name="menu-outline" size={30} color={theme === 'light' ? '#FFFFFF' : '#E0E0E0'} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={()=>{}} style={styles.cart}>
-            <Ionicons name="cart-outline" size={30} color={theme=='light'?"#FFFFFF": "#E0E0E0"}/>
-            <Pressable style={styles.itemsNumber} onPress={()=>{
+        <TouchableOpacity onPress={()=>{
               setMenuVisible(!menuVisible);
-              router.push("/Cart");
-            }}>
+              router.push("/cart");
+            }} style={styles.cart}>
+            <Ionicons name="cart-outline" size={30} color={theme=='light'?"#FFFFFF": "#E0E0E0"}/>
+            <Pressable  style={styles.itemsNumber}>
               <ThemedText>1</ThemedText>
             </Pressable>
           </TouchableOpacity>
+          
+          <TouchableOpacity onPress={toggleMenu} style={styles.profileButton}>
+            <Ionicons name="menu-outline" size={30} color={theme === 'light' ? '#FFFFFF' : '#E0E0E0'} />
+          </TouchableOpacity>
+          
 
           {menuVisible && (
             <ThemedView style={[styles.dropdownMenu]}>

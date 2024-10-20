@@ -6,7 +6,10 @@ import { useAuth } from '@/app/context/AuthContext'; // Import the Auth context 
 import { useTheme } from './context/ThemeProvider';
 import { baseUrl } from './baseUrl';
 import { fetchWithTokenRefresh } from './utils/auth'; 
-
+import * as Updates from "expo-updates";
+import * as SplashScreen from "expo-splash-screen";
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
 interface Product {
   _id: string;
   name: string;
@@ -23,6 +26,9 @@ interface User {
 }
 
 export default function HomeScreen() {
+  const [isReady, setisReady] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState("Checking for updates...");
+
   const router = useRouter();
   const { isLoggedIn, checkAuthStatus } = useAuth(); // Use Auth context
   const { theme } = useTheme(); // Use the theme context
@@ -33,6 +39,8 @@ export default function HomeScreen() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  SplashScreen.preventAutoHideAsync(); 
 
   const handleDeleteProduct = async (productId: string) => {
     try {
@@ -65,6 +73,23 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    const checkForUpdates = async () => {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable){
+          setUpdateStatus("Updating, this may take a while...")
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync();
+        } 
+      }catch (error){
+        console.log(error);
+      } finally{
+        SplashScreen.hideAsync();
+        setisReady(true);
+      }
+    }
+
+
     const fetchUserData = async () => {
       try {
         const response = await fetchWithTokenRefresh(`${baseUrl}/profile`, {
@@ -137,10 +162,20 @@ export default function HomeScreen() {
         setError('Failed to load products. Please try again later.');
       }
     };
+
+    checkForUpdates();
     fetchUserData();
     fetchProducts();
   }, []);
 
+  if (!isReady){
+    return (
+      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+        <ThemedText style={{ marginTop: 20 }}>{updateStatus}</ThemedText>
+    </ThemedView>
+    )
+  }
   const renderItem = ({ item }: { item: Product }) => {
     const user = users[item.createdBy];
 
@@ -162,6 +197,8 @@ export default function HomeScreen() {
       />
     );
   };
+
+
 
   return (
     <View style={[styles.container, { backgroundColor: theme === 'light' ? '#C8E6C9' : '#1E1E1E' }]}>
