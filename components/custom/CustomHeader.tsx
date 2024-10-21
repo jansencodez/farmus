@@ -1,18 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TouchableOpacity, TextComponent } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '@/app/context/AuthContext';
-import { useTheme } from '@/app/context/ThemeProvider';
-import { ThemedText } from '../ThemedText';
-import { ThemedView } from '../ThemedView';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  TouchableOpacity,
+  Alert,
+  TouchableWithoutFeedback,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "@/app/context/AuthContext";
+import { useTheme } from "@/app/context/ThemeProvider";
+import { ThemedText } from "../ThemedText";
+import { ThemedView } from "../ThemedView";
 
 export default function CustomHeader() {
   const [menuVisible, setMenuVisible] = useState(false);
   const router = useRouter();
   const { isLoggedIn, signOut, checkAuthStatus } = useAuth();
-  const { theme } = useTheme();
+  const { theme, colors } = useTheme(); // Use colors from the theme
 
   useEffect(() => {
     checkAuthStatus();
@@ -21,182 +29,275 @@ export default function CustomHeader() {
   const toggleMenu = () => setMenuVisible(!menuVisible);
 
   const handleSignOut = async () => {
-    try {
-      await signOut();
+    Alert.alert("Confirm Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        onPress: async () => {
+          try {
+            await signOut();
+            setMenuVisible(false);
+            router.push("/auth/signIn");
+          } catch (error) {
+            console.error("Sign Out Error:", error);
+          }
+        },
+      },
+    ]);
+  };
+
+  const closeMenu = () => {
+    if (menuVisible) {
       setMenuVisible(false);
-      router.push('/auth/signIn');
-    } catch (error) {
-      console.error('Sign Out Error:', error);
     }
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme === 'light' ? '#388E3C' : '#2E7D32' }]}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme === 'light' ? '#FFFFFF' : '#E0E0E0' }]}>Farmus</Text>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
+    >
+      <TouchableWithoutFeedback onPress={closeMenu}>
+        <ThemedView
+          style={[styles.header, { backgroundColor: colors.background }]}
+        >
+          <ThemedText style={[styles.title, { color: colors.text }]}>
+            Farmus
+          </ThemedText>
 
-        <View style={styles.rightSection}>
-        <TouchableOpacity onPress={()=>{
-              setMenuVisible(!menuVisible);
-              router.push("/cart");
-            }} style={styles.cart}>
-            <Ionicons name="cart-outline" size={30} color={theme=='light'?"#FFFFFF": "#E0E0E0"}/>
-            <Pressable  style={styles.itemsNumber}>
-              <ThemedText>1</ThemedText>
-            </Pressable>
-          </TouchableOpacity>
-          
-          <TouchableOpacity onPress={toggleMenu} style={styles.profileButton}>
-            <Ionicons name="menu-outline" size={30} color={theme === 'light' ? '#FFFFFF' : '#E0E0E0'} />
-          </TouchableOpacity>
-          
-
-          {menuVisible && (
-            <ThemedView style={[styles.dropdownMenu]}>
+          <View style={styles.rightSection}>
+            <TouchableOpacity
+              onPress={() => {
+                router.push("/cart");
+              }}
+              style={styles.cart}
+              accessibilityLabel="View Cart"
+            >
+              <Ionicons name="cart-outline" size={30} color={colors.text} />
               <Pressable
-                style={styles.menuItem}
-                onPress={() => {
-                  setMenuVisible(false);
-                  router.push('/');
-                }}
+                style={styles.itemsNumber}
+                accessible={true}
+                accessibilityLabel="10 items in cart"
               >
-                <Ionicons name="home-outline" size={20} color={theme === 'light' ? '#388E3C' : '#B9FBC0'} style={styles.menuIcon} />
-                <Text style={[styles.menuText, { color: theme === 'light' ? '#388E3C' : '#B9FBC0' }]}>Home</Text>
+                <ThemedText style={{ fontSize: 12, color: "white" }}>
+                  10
+                </ThemedText>
               </Pressable>
+            </TouchableOpacity>
 
-              {isLoggedIn ? (
-                <>
-                  <Pressable
-                    style={styles.menuItem}
-                    onPress={() => {
-                      setMenuVisible(false);
-                      router.push('/profile');
-                    }}
-                  >
-                    <Ionicons name="person-outline" size={20} color={theme === 'light' ? '#388E3C' : '#B9FBC0'} style={styles.menuIcon} />
-                    <Text style={[styles.menuText, { color: theme === 'light' ? '#388E3C' : '#B9FBC0' }]}>My Profile</Text>
-                  </Pressable>
-                  <Pressable
-                    style={styles.menuItem}
-                    onPress={() => {
-                      setMenuVisible(false);
-                      router.push('/settings');
-                    }}
-                  >
-                    <Ionicons name="settings-outline" size={20} color={theme === 'light' ? '#388E3C' : '#B9FBC0'} style={styles.menuIcon} />
-                    <Text style={[styles.menuText, { color: theme === 'light' ? '#388E3C' : '#B9FBC0' }]}>Settings</Text>
-                  </Pressable>
-                  <Pressable
-                    style={styles.menuItem}
-                    onPress={() => {
-                      setMenuVisible(false);
-                      router.push('/wallet');
-                    }}
-                  >
-                    <Ionicons name="wallet-outline" size={20} color={theme === 'light' ? '#388E3C' : '#B9FBC0'} style={styles.menuIcon} />
-                    <Text style={[styles.menuText, { color: theme === 'light' ? '#388E3C' : '#B9FBC0' }]}>Wallet</Text>
-                  </Pressable>
-                  <Pressable
-                    style={styles.menuItem}
-                    onPress={handleSignOut}
-                  >
-                    <Ionicons name="log-out-outline" size={20} color={theme === 'light' ? '#388E3C' : '#B9FBC0'} style={styles.menuIcon} />
-                    <Text style={[styles.menuText, { color: theme === 'light' ? '#388E3C' : '#B9FBC0' }]}>Sign Out</Text>
-                  </Pressable>
-                </>
-              ) : (
-                <>
-                  <Pressable
-                    style={styles.menuItem}
-                    onPress={() => {
-                      setMenuVisible(false);
-                      router.push('/auth/signIn');
-                    }}
-                  >
-                    <Ionicons name="log-in-outline" size={20} color={theme === 'light' ? '#388E3C' : '#B9FBC0'} style={styles.menuIcon} />
-                    <Text style={[styles.menuText, { color: theme === 'light' ? '#388E3C' : '#B9FBC0' }]}>Sign In</Text>
-                  </Pressable>
-                  <Pressable
-                    style={styles.menuItem}
-                    onPress={() => {
-                      setMenuVisible(false);
-                      router.push('/auth/signup');
-                    }}
-                  >
-                    <Ionicons name="person-add-outline" size={20} color={theme === 'light' ? '#388E3C' : '#B9FBC0'} style={styles.menuIcon} />
-                    <Text style={[styles.menuText, { color: theme === 'light' ? '#388E3C' : '#B9FBC0' }]}>Sign Up</Text>
-                  </Pressable>
-                </>
-              )}
-            </ThemedView>
-          )}
-        </View>
-      </View>
+            <TouchableOpacity
+              onPress={toggleMenu}
+              style={styles.profileButton}
+              accessibilityLabel="Open menu"
+            >
+              <Ionicons name="menu-outline" size={30} color={colors.text} />
+            </TouchableOpacity>
+
+            {menuVisible && (
+              <ThemedView
+                style={[
+                  styles.dropdownMenu,
+                  { backgroundColor: colors.background },
+                ]}
+              >
+                <Pressable
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setMenuVisible(false);
+                    router.push("/");
+                  }}
+                  accessibilityLabel="Go to Home"
+                >
+                  <Ionicons
+                    name="home-outline"
+                    size={20}
+                    color={colors.text}
+                    style={styles.menuIcon}
+                  />
+                  <ThemedText style={[styles.menuText, { color: colors.text }]}>
+                    Home
+                  </ThemedText>
+                </Pressable>
+
+                {isLoggedIn ? (
+                  <>
+                    <Pressable
+                      style={styles.menuItem}
+                      onPress={() => {
+                        setMenuVisible(false);
+                        router.push("/profile");
+                      }}
+                      accessibilityLabel="Go to My Profile"
+                    >
+                      <Ionicons
+                        name="person-outline"
+                        size={20}
+                        color={colors.text}
+                        style={styles.menuIcon}
+                      />
+                      <ThemedText
+                        style={[styles.menuText, { color: colors.text }]}
+                      >
+                        My Profile
+                      </ThemedText>
+                    </Pressable>
+                    <Pressable
+                      style={styles.menuItem}
+                      onPress={() => {
+                        setMenuVisible(false);
+                        router.push("/settings");
+                      }}
+                      accessibilityLabel="Go to Settings"
+                    >
+                      <Ionicons
+                        name="settings-outline"
+                        size={20}
+                        color={colors.text}
+                        style={styles.menuIcon}
+                      />
+                      <ThemedText
+                        style={[styles.menuText, { color: colors.text }]}
+                      >
+                        Settings
+                      </ThemedText>
+                    </Pressable>
+                    <Pressable
+                      style={styles.menuItem}
+                      onPress={() => {
+                        setMenuVisible(false);
+                        router.push("/wallet");
+                      }}
+                      accessibilityLabel="Go to Wallet"
+                    >
+                      <Ionicons
+                        name="wallet-outline"
+                        size={20}
+                        color={colors.text}
+                        style={styles.menuIcon}
+                      />
+                      <ThemedText
+                        style={[styles.menuText, { color: colors.text }]}
+                      >
+                        Wallet
+                      </ThemedText>
+                    </Pressable>
+                    <Pressable
+                      style={styles.menuItem}
+                      onPress={handleSignOut}
+                      accessibilityLabel="Sign Out"
+                    >
+                      <Ionicons
+                        name="log-out-outline"
+                        size={20}
+                        color={colors.text}
+                        style={styles.menuIcon}
+                      />
+                      <ThemedText
+                        style={[styles.menuText, { color: colors.text }]}
+                      >
+                        Sign Out
+                      </ThemedText>
+                    </Pressable>
+                  </>
+                ) : (
+                  <>
+                    <Pressable
+                      style={styles.menuItem}
+                      onPress={() => {
+                        setMenuVisible(false);
+                        router.push("/auth/signIn");
+                      }}
+                      accessibilityLabel="Sign In"
+                    >
+                      <Ionicons
+                        name="log-in-outline"
+                        size={20}
+                        color={colors.text}
+                        style={styles.menuIcon}
+                      />
+                      <ThemedText
+                        style={[styles.menuText, { color: colors.text }]}
+                      >
+                        Sign In
+                      </ThemedText>
+                    </Pressable>
+                    <Pressable
+                      style={styles.menuItem}
+                      onPress={() => {
+                        setMenuVisible(false);
+                        router.push("/auth/signup");
+                      }}
+                      accessibilityLabel="Sign Up"
+                    >
+                      <Ionicons
+                        name="person-add-outline"
+                        color={colors.text}
+                        size={20}
+                        style={styles.menuIcon}
+                      />
+                      <ThemedText
+                        style={[styles.menuText, { color: colors.text }]}
+                      >
+                        Sign Up
+                      </ThemedText>
+                    </Pressable>
+                  </>
+                )}
+              </ThemedView>
+            )}
+          </View>
+        </ThemedView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    // Background color will be dynamically set via the theme
-  },
+  safeArea: {},
   header: {
     height: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 15,
+    borderBottomWidth: 1,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   rightSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   profileButton: {
     padding: 5,
   },
-  cart:{
-    padding:5,
-    display:'flex',
-    position:'relative',
+  cart: {
+    padding: 5,
+    position: "relative",
   },
-  itemsNumber:{
-
-    position:'absolute',
-    display:"flex",
-    justifyContent:"center",
-    alignItems:"center",
-    textAlign:"center",
-    flex:1,
-    top:-2,
-    left:18,
-    backgroundColor:"red",
-    padding:4,
-    width:20,
-    height:20,
-    borderRadius:10,
+  itemsNumber: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    backgroundColor: "red",
+    borderRadius: 10,
+    paddingHorizontal: 5,
   },
   dropdownMenu: {
-    flex: 1,
-    width: 160,
-    position: 'absolute',
+    position: "absolute",
+    right: 15,
     top: 60,
-    right: 0,
-    borderRadius: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
+    backgroundColor: "#FFF",
+    borderRadius: 8,
     elevation: 5,
     zIndex: 10,
   },
   menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    flexDirection: "row",
+    alignItems: "center",
   },
   menuIcon: {
     marginRight: 10,

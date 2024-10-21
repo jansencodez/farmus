@@ -5,8 +5,10 @@ import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchWithTokenRefresh } from '../utils/auth'; 
 import { baseUrl } from '../baseUrl';
+import { useTheme } from '../context/ThemeProvider';  // Update this to your actual path
 
 export default function SignUpScreen() {
+  const { colors } = useTheme(); // Get colors from theme context
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -75,24 +77,27 @@ export default function SignUpScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Sign Up</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.primary }]}>Sign Up</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { borderColor: colors.secondary, backgroundColor: colors.text }]}
         placeholder="Name"
+        placeholderTextColor={colors.placeholder}
         value={name}
         onChangeText={setName}
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { borderColor: colors.secondary, backgroundColor: colors.text }]}
         placeholder="Email"
+        placeholderTextColor={colors.placeholder}
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { borderColor: colors.secondary, backgroundColor: colors.text }]}
         placeholder="Password"
+        placeholderTextColor={colors.placeholder}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -100,10 +105,10 @@ export default function SignUpScreen() {
       {profilePicture && (
         <Image source={{ uri: profilePicture }} style={styles.imagePreview} />
       )}
-      <Pressable onPress={handleImagePicker} style={styles.imagePickerButton}>
+      <Pressable onPress={handleImagePicker} style={[styles.imagePickerButton, { backgroundColor: colors.primary }]}>
         <Text style={styles.imagePickerButtonText}>Pick a Profile Picture</Text>
       </Pressable>
-      <Pressable style={styles.button} onPress={handleSignUp}>
+      <Pressable style={[styles.button, { backgroundColor: colors.primary }]} onPress={handleSignUp}>
         <Text style={styles.buttonText}>Sign Up</Text>
       </Pressable>
     </View>
@@ -114,44 +119,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#C8E6C9', // Light Green background
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#388E3C', // Dark Green text
     marginBottom: 20,
   },
   input: {
     height: 40,
-    borderColor: '#795548', // Brown border
     borderWidth: 1,
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 15,
-    backgroundColor: '#FFFFFF', // White input background
   },
   button: {
     padding: 15,
-    backgroundColor: '#4CAF50', // Green button
     borderRadius: 5,
     alignItems: 'center',
     marginTop: 10,
   },
   buttonText: {
-    color: '#FFFFFF', // White text
+    color: '#FFFFFF', // Keep this as white
     fontSize: 16,
     fontWeight: 'bold',
   },
   imagePickerButton: {
     padding: 15,
-    backgroundColor: '#4CAF50', // Green button
     borderRadius: 5,
     alignItems: 'center',
     marginTop: 10,
   },
   imagePickerButtonText: {
-    color: '#FFFFFF', // White text
+    color: '#FFFFFF', // Keep this as white
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -161,6 +160,6 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginTop: 10,
     alignSelf: 'center',
-    resizeMode: 'cover', // Ensures the image is fully visible within the preview box
+    resizeMode: 'cover',
   },
 });

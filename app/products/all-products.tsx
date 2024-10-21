@@ -23,7 +23,7 @@ interface User {
 }
 
 export default function AllProductsScreen() {
-  const { theme } = useTheme();
+  const { colors, theme } = useTheme();
   const { userId } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<{ [key: string]: User }>({});
@@ -142,8 +142,8 @@ export default function AllProductsScreen() {
   };
 
   return (
-    <View style={[styles.container, theme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
-      <Text style={[styles.title, theme === 'dark' ? styles.darkTitle : styles.lightTitle]}>All Products</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text }]}>All Products</Text>
       {error ? (
         <Text style={styles.error}>{error}</Text>
       ) : (
@@ -165,32 +165,20 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  darkContainer: {
-    backgroundColor: '#121212', // Dark background for dark theme
-  },
-  lightContainer: {
-    backgroundColor: '#C8E6C9', // Light Green background for light theme
-  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-  },
-  darkTitle: {
-    color: '#E0E0E0', // Light text color for dark theme
-  },
-  lightTitle: {
-    color: '#388E3C', // Dark Green text for light theme
-  },
-  productList: {
-    flexGrow: 1,
   },
   error: {
     color: 'red',
     fontSize: 16,
     textAlign: 'center',
   },
-  row:{
+  productList: {
+    flexGrow: 1,
+  },
+  row: {
     justifyContent: "space-evenly",
   },
 });

@@ -36,7 +36,7 @@ export default function ProductCard({
   onDelete,
   isDeleting,
 }: ProductCardProps) {
-  const { theme } = useTheme(); // Get current theme
+  const { colors } = useTheme(); // Get current colors from theme
   const productImage = imageUrl;
   const profilePicture = userProfilePicture;
   const router = useRouter();
@@ -63,7 +63,7 @@ export default function ProductCard({
     const amount = parseFloat(price); // Convert price to float
 
     try {
-      const response = await fetchWithTokenRefresh('https://farmus-wallet-backend.vercel.app/api/wallet/transact', { // Update with your endpoint
+      const response = await fetchWithTokenRefresh('https://farmus-wallet-backend.vercel.app/api/wallet/transact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,7 +92,7 @@ export default function ProductCard({
   };
 
   // Define dynamic styles based on theme
-  const styles = getStyles(theme);
+  const styles = getStyles(colors);
 
   return (
     <View style={styles.card}>
@@ -174,13 +174,11 @@ export default function ProductCard({
   );
 }
 
-// Define styles based on the theme
-const getStyles = (theme: string) => {
-  const isDarkMode = theme === 'dark';
-
+// Define styles based on the theme colors
+const getStyles = (colors: any) => {
   return StyleSheet.create({
     card: {
-      backgroundColor: isDarkMode ? '#333333' : '#FFFFFF',
+      backgroundColor: colors.background,
       borderRadius: 10,
       overflow: 'hidden',
       marginBottom: 20,
@@ -199,25 +197,25 @@ const getStyles = (theme: string) => {
     productTitle: {
       fontSize: 18,
       fontWeight: 'bold',
-      color: isDarkMode ? '#FFFFFF' : '#000000',
+      color: colors.text,
     },
     productPrice: {
       fontSize: 16,
-      color: isDarkMode ? '#4CAF50' : '#388E3C',
+      color: colors.primary,
     },
     productDescription: {
       fontSize: 14,
-      color: isDarkMode ? '#BBBBBB' : '#666666',
+      color: colors.placeholder,
       marginTop: 1,
     },
     productCategory: {
       fontSize: 14,
-      color: isDarkMode ? '#AAAAAA' : '#444444',
+      color: colors.placeholder,
       marginTop: 1,
     },
     timeSinceUpload: {
       fontSize: 12,
-      color: isDarkMode ? '#888888' : '#999999',
+      color: colors.secondary,
       marginTop: 1,
     },
     userInfo: {
@@ -225,7 +223,7 @@ const getStyles = (theme: string) => {
       alignItems: 'center',
       padding: 2,
       borderTopWidth: 1,
-      borderTopColor: isDarkMode ? '#444444' : '#E0E0E0',
+      borderTopColor: colors.secondary,
     },
     profileImage: {
       width: 25,
@@ -235,7 +233,7 @@ const getStyles = (theme: string) => {
     },
     username: {
       fontSize: 16,
-      color: isDarkMode ? '#4CAF50' : '#388E3C',
+      color: colors.primary,
     },
     deleteButton: {
       backgroundColor: '#F44336',
@@ -250,7 +248,7 @@ const getStyles = (theme: string) => {
       fontWeight: 'bold',
     },
     buyButton: {
-      backgroundColor: '#4CAF50',
+      backgroundColor: colors.primary,
       padding: 10,
       borderRadius: 5,
       alignItems: 'center',
@@ -267,12 +265,12 @@ const getStyles = (theme: string) => {
       alignItems: 'center',
       padding: 10,
       borderTopWidth: 1,
-      borderTopColor: isDarkMode ? '#444444' : '#E0E0E0',
+      borderTopColor: colors.secondary,
     },
     label: {
       fontSize: 16,
       fontWeight: 'bold',
-      color: isDarkMode ? '#FFFFFF' : '#000000',
+      color: colors.text,
     },
   });
 };

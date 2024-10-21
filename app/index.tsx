@@ -1,15 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, FlatList, Alert, ActivityIndicator, ToastAndroid } from 'react-native';
-import { useRouter } from 'expo-router';
-import ProductCard from '@/components/custom/ProductCard'; // Adjust the import path as needed
-import { useAuth } from '@/app/context/AuthContext'; // Import the Auth context or hook
-import { useTheme } from './context/ThemeProvider';
-import { baseUrl } from './baseUrl';
-import { fetchWithTokenRefresh } from './utils/auth'; 
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  TextInput,
+  FlatList,
+  Alert,
+  ActivityIndicator,
+  ToastAndroid,
+} from "react-native";
+import { useRouter } from "expo-router";
+import ProductCard from "@/components/custom/ProductCard"; // Adjust the import path as needed
+import { useAuth } from "@/app/context/AuthContext"; // Import the Auth context or hook
+import { useTheme } from "./context/ThemeProvider";
+import { baseUrl } from "./baseUrl";
+import { fetchWithTokenRefresh } from "./utils/auth";
 import * as Updates from "expo-updates";
 import * as SplashScreen from "expo-splash-screen";
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from "@/components/ThemedText";
 interface Product {
   _id: string;
   name: string;
@@ -31,7 +41,7 @@ export default function HomeScreen() {
 
   const router = useRouter();
   const { isLoggedIn, checkAuthStatus } = useAuth(); // Use Auth context
-  const { theme } = useTheme(); // Use the theme context
+  const { colors } = useTheme();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<{ [key: string]: User }>({});
@@ -40,35 +50,37 @@ export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  SplashScreen.preventAutoHideAsync(); 
+  SplashScreen.preventAutoHideAsync();
 
   const handleDeleteProduct = async (productId: string) => {
     try {
-      setIsDeleting(true)
+      setIsDeleting(true);
       const token = checkAuthStatus; // Fetch the token from auth context
       if (token) {
-        const response = await fetchWithTokenRefresh(`${baseUrl}/delete?id=${productId}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+        const response = await fetchWithTokenRefresh(
+          `${baseUrl}/delete?id=${productId}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         const data = await response.json();
         if (response.ok) {
-          setProducts(products.filter(product => product._id !== productId));
+          setProducts(products.filter((product) => product._id !== productId));
           setIsDeleting(false);
           ToastAndroid.show("successful", ToastAndroid.SHORT);
-
         } else {
-          ToastAndroid.show('not successful',ToastAndroid.SHORT)
+          ToastAndroid.show("not successful", ToastAndroid.SHORT);
         }
       } else {
-        ToastAndroid.show('not signed in',ToastAndroid.SHORT)
+        ToastAndroid.show("not signed in", ToastAndroid.SHORT);
       }
     } catch (error) {
-      ToastAndroid.show('failed',ToastAndroid.SHORT)
+      ToastAndroid.show("failed", ToastAndroid.SHORT);
     }
   };
 
@@ -76,43 +88,40 @@ export default function HomeScreen() {
     const checkForUpdates = async () => {
       try {
         const update = await Updates.checkForUpdateAsync();
-        if (update.isAvailable){
-          setUpdateStatus("Updating, this may take a while...")
+        if (update.isAvailable) {
+          setUpdateStatus("Updating, this may take a while...");
           await Updates.fetchUpdateAsync();
           await Updates.reloadAsync();
-        } 
-      }catch (error){
+        }
+      } catch (error) {
         console.log(error);
-      } finally{
+      } finally {
+        ToastAndroid.show("Updated", ToastAndroid.SHORT);
         SplashScreen.hideAsync();
         setisReady(true);
       }
-    }
-
+    };
 
     const fetchUserData = async () => {
       try {
         const response = await fetchWithTokenRefresh(`${baseUrl}/profile`, {
-          method: 'GET',
+          method: "GET",
         });
 
         const data = await response.json();
         if (response.ok) {
           setCurrentUserId(data.user._id); // Set currentUserId
         } else {
-          throw new Error('Failed to fetch user data');
+          throw new Error("Failed to fetch user data");
         }
-      } catch (error) {
-        
-      }
+      } catch (error) {}
     };
-    
+
     const fetchProducts = async () => {
-      
       try {
-        setIsLoading(true)
+        setIsLoading(true);
         const response = await fetchWithTokenRefresh(`${baseUrl}/products`, {
-          method: 'GET',
+          method: "GET",
         });
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -127,13 +136,13 @@ export default function HomeScreen() {
         setIsLoading(false);
 
         // Fetch user details
-        const userIds = processedProducts.map(product => product.createdBy);
+        const userIds = processedProducts.map((product) => product.createdBy);
         const uniqueUserIds = Array.from(new Set(userIds));
 
         const userResponses = await Promise.all(
-          uniqueUserIds.map(userId =>
+          uniqueUserIds.map((userId) =>
             fetchWithTokenRefresh(`${baseUrl}/users?id=${userId}`, {
-              method: 'GET',
+              method: "GET",
             })
           )
         );
@@ -149,7 +158,9 @@ export default function HomeScreen() {
           })
         );
 
-        const filteredUserData = validUserResponses.filter(user => user !== null);
+        const filteredUserData = validUserResponses.filter(
+          (user) => user !== null
+        );
 
         const userMap = filteredUserData.reduce((acc, user) => {
           acc[user._id] = user;
@@ -157,9 +168,8 @@ export default function HomeScreen() {
         }, {} as { [key: string]: User });
 
         setUsers(userMap);
-
       } catch (error) {
-        setError('Failed to load products. Please try again later.');
+        setError("Failed to load products. Please try again later.");
       }
     };
 
@@ -168,13 +178,15 @@ export default function HomeScreen() {
     fetchProducts();
   }, []);
 
-  if (!isReady){
+  if (!isReady) {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <ThemedView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
         <ActivityIndicator size="large" />
         <ThemedText style={{ marginTop: 20 }}>{updateStatus}</ThemedText>
-    </ThemedView>
-    )
+      </ThemedView>
+    );
   }
   const renderItem = ({ item }: { item: Product }) => {
     const user = users[item.createdBy];
@@ -186,8 +198,10 @@ export default function HomeScreen() {
         imageUrl={item.imageUrl}
         description={item.description}
         productId={item._id} // MongoDB ObjectId
-        userProfilePicture={user?.profilePicture || 'https://via.placeholder.com/150'} // Default image if not found
-        username={user?.name || 'Unknown User'} // Updated to 'name'
+        userProfilePicture={
+          user?.profilePicture || "https://via.placeholder.com/150"
+        } // Default image if not found
+        username={user?.name || "Unknown User"} // Updated to 'name'
         userId={item.createdBy} // Use createdBy for userId
         currentUserId={currentUserId} // Show 'Buy' button only if the product does not belong to the user
         category={item.category}
@@ -198,26 +212,39 @@ export default function HomeScreen() {
     );
   };
 
-
-
   return (
-    <View style={[styles.container, { backgroundColor: theme === 'light' ? '#C8E6C9' : '#1E1E1E' }]}>
-      {/* Welcome Message */}
-      <Text style={[styles.welcomeText, { color: theme === 'light' ? '#388E3C' : '#FFFFFF' }]}>Welcome to Farmus!</Text>
-      
+    <ThemedView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       {/* Search Bar */}
       <TextInput
-        style={[styles.searchInput, { borderColor: theme === 'light' ? '#795548' : '#BDBDBD', backgroundColor: theme === 'light' ? '#FFFFFF' : '#616161' }]}
+        style={[
+          styles.searchInput,
+          {
+            borderColor: colors.secondary,
+            backgroundColor: colors.background,
+            color: colors.text,
+          },
+        ]}
         placeholder="Search for products or farms..."
-        placeholderTextColor={theme === 'light' ? '#795548' : '#BDBDBD'} // Brown for placeholder text
+        placeholderTextColor={colors.placeholder} // Placeholder color based on theme
       />
 
       {/* Error Message */}
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
 
       {/* Featured Products */}
-      <Text style={[styles.sectionTitle, { color: theme === 'light' ? '#388E3C' : '#FFFFFF' }]}>Featured Products</Text>
-      {isLoading&&<ActivityIndicator size="large" color="#4CAF50" style={styles.loader} /> }
+      <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
+        Featured Products
+      </ThemedText>
+      {isLoading && (
+        <ActivityIndicator
+          size="large"
+          color={colors.primary}
+          style={styles.loader}
+        />
+      )}
+
       <FlatList
         data={products}
         renderItem={renderItem}
@@ -225,34 +252,36 @@ export default function HomeScreen() {
         contentContainerStyle={styles.productList}
         numColumns={2} // Number of columns in the grid
         columnWrapperStyle={styles.row}
-
       />
 
       {/* Navigation Options */}
       <View style={styles.buttonContainer}>
         <Pressable
-          style={[styles.button, styles.viewAllButton]}
-          onPress={() => router.push('/products/all-products')}
+          style={[styles.button, { backgroundColor: colors.secondary }]}
+          onPress={() => router.push("/products/all-products")}
         >
-          <Text style={styles.buttonText}>View All Products</Text>
+          <ThemedText style={styles.buttonText}>View All Products</ThemedText>
         </Pressable>
+
         {isLoggedIn ? (
           <Pressable
-            style={[styles.button, styles.createListingButton]}
-            onPress={() => router.push('/new-listing')}
+            style={[styles.button, { backgroundColor: colors.primary }]}
+            onPress={() => router.push("/new-listing")}
           >
-            <Text style={styles.buttonText}>Add Item</Text>
+            <ThemedText style={styles.buttonText}>Add Item</ThemedText>
           </Pressable>
         ) : (
           <Pressable
-            style={[styles.button, styles.signInButton]}
-            onPress={() => router.push('/auth/signIn')}
+            style={[styles.button, { backgroundColor: "#FF5722" }]} // Orange for sign-in
+            onPress={() => router.push("/auth/signIn")}
           >
-            <Text style={styles.buttonText}>Sign In to Add items</Text>
+            <ThemedText style={styles.buttonText}>
+              Sign In to Add items
+            </ThemedText>
           </Pressable>
         )}
       </View>
-    </View>
+    </ThemedView>
   );
 }
 
@@ -263,12 +292,12 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
-    textAlign: 'center',
+    textAlign: "center",
   },
   row: {
-    justifyContent: 'space-evenly',
+    justifyContent: "space-evenly",
   },
   searchInput: {
     height: 40,
@@ -279,8 +308,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 5,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    padding: 4,
   },
   productList: {
     marginBottom: 20,
@@ -292,31 +324,20 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 5,
     marginBottom: 10,
-    alignItems: 'center',
-  },
-  viewAllButton: {
-    backgroundColor: '#795548', // Brown button
-  },
-  createListingButton: {
-    backgroundColor: '#4CAF50', // Green button
-  },
-  signInButton: {
-    backgroundColor: '#FF5722', // Orange button for sign-in
+    alignItems: "center",
   },
   buttonText: {
-    color: '#FFFFFF', // White text
+    color: "#FFFFFF", // White text for buttons
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   errorText: {
-    color: '#FF5722', // Orange for error message
-    textAlign: 'center',
+    color: "#FF5722", // Orange for error message
+    textAlign: "center",
     marginBottom: 20,
   },
   loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#C8E6C9',
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
