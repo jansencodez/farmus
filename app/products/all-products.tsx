@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import ProductCard from '@/components/custom/ProductCard'; // Adjust path if needed
-import { baseUrl } from '../baseUrl';
-import { useTheme } from '../context/ThemeProvider';
-import { useAuth } from '../context/AuthContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fetchWithTokenRefresh } from '../utils/auth';
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, FlatList } from "react-native";
+import ProductCard from "@/components/custom/ProductCard"; // Adjust path if needed
+import { baseUrl } from "../baseUrl";
+import { useTheme } from "../context/ThemeProvider";
+import { useAuth } from "../context/AuthContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fetchWithTokenRefresh } from "../utils/auth";
 
 interface Product {
   _id: string;
@@ -27,31 +27,34 @@ export default function AllProductsScreen() {
   const { userId } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<{ [key: string]: User }>({});
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(userId);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = await AsyncStorage.getItem('token');
+        const token = await AsyncStorage.getItem("token");
         if (token) {
-          const userResponse = await fetchWithTokenRefresh(`${baseUrl}/profile`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-          });
+          const userResponse = await fetchWithTokenRefresh(
+            `${baseUrl}/profile`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
           if (userResponse.ok) {
             const userData = await userResponse.json();
             setCurrentUserId(userData.user._id); // Set currentUserId
           } else {
-            throw new Error('Failed to fetch user data');
+            throw new Error("Failed to fetch user data");
           }
         }
       } catch (error) {
-        console.error('Error fetching user data:', error.message);
+        console.error("Error fetching user data:", error.message);
       }
     };
 
@@ -77,13 +80,11 @@ export default function AllProductsScreen() {
         setProducts(processedProducts);
 
         // Fetch user details
-        const userIds = processedProducts.map(product => product.createdBy);
+        const userIds = processedProducts.map((product) => product.createdBy);
         const uniqueUserIds = Array.from(new Set(userIds));
 
         const userResponses = await Promise.all(
-          uniqueUserIds.map(userId =>
-            fetch(`${baseUrl}/users?id=${userId}`)
-          )
+          uniqueUserIds.map((userId) => fetch(`${baseUrl}/users?id=${userId}`))
         );
 
         const validUserResponses = await Promise.all(
@@ -103,7 +104,9 @@ export default function AllProductsScreen() {
           })
         );
 
-        const filteredUserData = validUserResponses.filter(user => user !== null) as User[];
+        const filteredUserData = validUserResponses.filter(
+          (user) => user !== null
+        ) as User[];
 
         const userMap = filteredUserData.reduce((acc, user) => {
           acc[user._id] = user;
@@ -111,10 +114,9 @@ export default function AllProductsScreen() {
         }, {} as { [key: string]: User });
 
         setUsers(userMap);
-
       } catch (error) {
-        console.error('Error fetching products:', error);
-        setError('Failed to load products. Please try again later.');
+        console.error("Error fetching products:", error);
+        setError("Failed to load products. Please try again later.");
       }
     };
 
@@ -167,13 +169,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
   },
   error: {
-    color: 'red',
+    color: "red",
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   productList: {
     flexGrow: 1,

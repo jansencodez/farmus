@@ -36,53 +36,23 @@ interface User {
 }
 
 export default function HomeScreen() {
-  const [isReady, setisReady] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const [updateStatus, setUpdateStatus] = useState("Checking for updates...");
 
   const router = useRouter();
-  const { isLoggedIn, checkAuthStatus } = useAuth(); // Use Auth context
+  const { isLoggedIn, checkAuthStatus } = useAuth();
   const { colors } = useTheme();
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<{ [key: string]: User }>({});
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   SplashScreen.preventAutoHideAsync();
-
-  const handleDeleteProduct = async (productId: string) => {
-    try {
-      setIsDeleting(true);
-      const token = checkAuthStatus; // Fetch the token from auth context
-      if (token) {
-        const response = await fetchWithTokenRefresh(
-          `${baseUrl}/delete?id=${productId}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await response.json();
-        if (response.ok) {
-          setProducts(products.filter((product) => product._id !== productId));
-          setIsDeleting(false);
-          ToastAndroid.show("successful", ToastAndroid.SHORT);
-        } else {
-          ToastAndroid.show("not successful", ToastAndroid.SHORT);
-        }
-      } else {
-        ToastAndroid.show("not signed in", ToastAndroid.SHORT);
-      }
-    } catch (error) {
-      ToastAndroid.show("failed", ToastAndroid.SHORT);
-    }
-  };
 
   useEffect(() => {
     const checkForUpdates = async () => {
@@ -98,7 +68,7 @@ export default function HomeScreen() {
       } finally {
         ToastAndroid.show("Updated", ToastAndroid.SHORT);
         SplashScreen.hideAsync();
-        setisReady(true);
+        setIsReady(true);
       }
     };
 
@@ -133,6 +103,7 @@ export default function HomeScreen() {
           price: parseFloat(product.price),
         }));
         setProducts(processedProducts);
+        setFilteredProducts(processedProducts); // Initialize filteredProducts
         setIsLoading(false);
 
         // Fetch user details
@@ -178,6 +149,57 @@ export default function HomeScreen() {
     fetchProducts();
   }, []);
 
+  // Update filtered products whenever products or searchTerm changes
+  useEffect(() => {
+    if (searchTerm) {
+      const newItems = products.filter(
+        (item) =>
+          item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.price.toString().includes(searchTerm)
+      );
+      setFilteredProducts(newItems);
+    } else {
+      setFilteredProducts(products);
+    }
+  }, [searchTerm]);
+
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      setIsDeleting(true);
+      const token = checkAuthStatus; // Fetch the token from auth context
+      if (token) {
+        const response = await fetchWithTokenRefresh(
+          `${baseUrl}/delete?id=${productId}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+        if (response.ok) {
+          setProducts(products.filter((product) => product._id !== productId));
+          setFilteredProducts(
+            filteredProducts.filter((product) => product._id !== productId)
+          ); // Update filteredProducts as well
+          ToastAndroid.show("Product deleted successfully", ToastAndroid.SHORT);
+        } else {
+          ToastAndroid.show("Deletion failed", ToastAndroid.SHORT);
+        }
+      } else {
+        ToastAndroid.show("Not signed in", ToastAndroid.SHORT);
+      }
+    } catch (error) {
+      ToastAndroid.show("Deletion error", ToastAndroid.SHORT);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (!isReady) {
     return (
       <ThemedView
@@ -188,6 +210,7 @@ export default function HomeScreen() {
       </ThemedView>
     );
   }
+
   const renderItem = ({ item }: { item: Product }) => {
     const user = users[item.createdBy];
 
@@ -199,7 +222,7 @@ export default function HomeScreen() {
         description={item.description}
         productId={item._id} // MongoDB ObjectId
         userProfilePicture={
-          user?.profilePicture || "https://via.placeholder.com/150"
+          user?.profilePicture || "https://via.placeholder.com/40"
         } // Default image if not found
         username={user?.name || "Unknown User"} // Updated to 'name'
         userId={item.createdBy} // Use createdBy for userId
@@ -218,6 +241,8 @@ export default function HomeScreen() {
     >
       {/* Search Bar */}
       <TextInput
+        value={searchTerm}
+        onChangeText={setSearchTerm}
         style={[
           styles.searchInput,
           {
@@ -246,7 +271,7 @@ export default function HomeScreen() {
       )}
 
       <FlatList
-        data={products}
+        data={filteredProducts || products}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.productList}

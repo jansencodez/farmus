@@ -1,19 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, FlatList, Alert, Image, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import ProductCard from '@/components/custom/ProductCard'; // Adjust the import path as needed
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRoute } from '@react-navigation/native';
-import { fetchWithTokenRefresh } from '../utils/auth';
-import { baseUrl } from '../baseUrl';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Pressable,
+  FlatList,
+  Alert,
+  Image,
+  ActivityIndicator,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import ProductCard from "@/components/custom/ProductCard"; // Adjust the import path as needed
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRoute } from "@react-navigation/native";
+import { fetchWithTokenRefresh } from "../utils/auth";
+import { baseUrl } from "../baseUrl";
 
 export default function ProfileScreen() {
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const route = useRoute();
@@ -22,56 +32,69 @@ export default function ProfileScreen() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = await AsyncStorage.getItem('token');
+        const token = await AsyncStorage.getItem("token");
         if (token) {
-          const userResponse = await fetchWithTokenRefresh(`${baseUrl}/users?id=${id}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-  
+          const userResponse = await fetchWithTokenRefresh(
+            `${baseUrl}/users?id=${id}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
           const userData = await userResponse.json();
-  
+
           if (userResponse.ok) {
             setUser(userData);
             setName(userData.name);
             setEmail(userData.email);
-  
+
             // Fetch product details
-            const productDetailsPromises = userData.products.map(async (productId) => {
-              const productResponse = await fetchWithTokenRefresh(`${baseUrl}/product?id=${productId}`, {
-                  method: 'GET',
-                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-              });
+            const productDetailsPromises = userData.products.map(
+              async (productId) => {
+                const productResponse = await fetchWithTokenRefresh(
+                  `${baseUrl}/product?id=${productId}`,
+                  {
+                    method: "GET",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                  }
+                );
 
-              if (!productResponse.ok) {
+                if (!productResponse.ok) {
                   const productErrorText = await productResponse.text();
-                  throw new Error(`Failed to fetch product: ${productErrorText}`);
-              }
+                  throw new Error(
+                    `Failed to fetch product: ${productErrorText}`
+                  );
+                }
 
-              const productText = await productResponse.text();
-              const productData = JSON.parse(productText);
-              return productData;
-          });
-  
+                const productText = await productResponse.text();
+                const productData = JSON.parse(productText);
+                return productData;
+              }
+            );
+
             const productDetails = await Promise.all(productDetailsPromises);
-            console.log('Product Details:', productDetails); // Add this line
-            const formattedProducts = productDetails.map(product => ({
+            console.log("Product Details:", productDetails); // Add this line
+            const formattedProducts = productDetails.map((product) => ({
               ...product,
-              price: product.price.$numberDecimal // Ensure price is formatted correctly
+              price: product.price.$numberDecimal, // Ensure price is formatted correctly
             }));
             setProducts(formattedProducts);
           } else {
-            Alert.alert('Error', userData.message);
+            Alert.alert("Error", userData.message);
           }
         } else {
-          Alert.alert('Error', 'No authentication token found.');
+          Alert.alert("Error", "No authentication token found.");
         }
       } catch (error) {
-        Alert.alert('Error', 'An unexpected error occurred.');
-        console.error('Fetch User Data Error:', error);
+        Alert.alert("Error", "An unexpected error occurred.");
+        console.error("Fetch User Data Error:", error);
       } finally {
         setLoading(false);
       }
@@ -82,31 +105,31 @@ export default function ProfileScreen() {
 
   const handleSaveChanges = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = await AsyncStorage.getItem("token");
       if (token) {
         const response = await fetch(`${baseUrl}api/update`, {
-          method: 'PUT',
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ name, email }),
         });
 
         const data = await response.json();
         if (response.ok) {
-          Alert.alert('Success', 'Profile updated successfully!');
+          Alert.alert("Success", "Profile updated successfully!");
           setUser({ ...user, name, email });
           setIsEditing(false);
         } else {
-          Alert.alert('Error', data.message);
+          Alert.alert("Error", data.message);
         }
       } else {
-        Alert.alert('Error', 'No authentication token found.');
+        Alert.alert("Error", "No authentication token found.");
       }
     } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred.');
-      console.error('Update Profile Error:', error);
+      Alert.alert("Error", "An unexpected error occurred.");
+      console.error("Update Profile Error:", error);
     }
   };
 
@@ -114,7 +137,7 @@ export default function ProfileScreen() {
     if (user?._id) {
       router.push(`/profile/${user._id}`);
     } else {
-      Alert.alert('Error', 'User ID not found.');
+      Alert.alert("Error", "User ID not found.");
     }
   };
 
@@ -125,8 +148,10 @@ export default function ProfileScreen() {
       imageUrl={item.imageUrl}
       description={item.description}
       productId={item._id} // MongoDB ObjectId
-      userProfilePicture={user?.profilePicture || 'https://via.placeholder.com/150'} // Default image if not found
-      username={user?.name || 'Unknown User'}
+      userProfilePicture={
+        user?.profilePicture || "https://via.placeholder.com/150"
+      } // Default image if not found
+      username={user?.name || "Unknown User"}
       userId={item.createdBy} // Use createdBy for userId
     />
   );
@@ -176,7 +201,7 @@ export default function ProfileScreen() {
             <View style={styles.userInfo}>
               <Pressable onPress={handleProfilePress}>
                 <Image
-                  source={{uri: user.profilePicture}}
+                  source={{ uri: user.profilePicture }}
                   style={styles.profilePicture}
                 />
               </Pressable>
@@ -209,14 +234,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#C8E6C9', // Light Green background
+    backgroundColor: "#C8E6C9", // Light Green background
   },
   profileSection: {
     marginBottom: 20,
   },
   userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
   },
   profilePicture: {
@@ -227,34 +252,34 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#388E3C', // Dark Green text
+    fontWeight: "bold",
+    color: "#388E3C", // Dark Green text
     marginBottom: 10,
   },
   input: {
     height: 40,
-    borderColor: '#795548', // Brown border
+    borderColor: "#795548", // Brown border
     borderWidth: 1,
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 15,
-    backgroundColor: '#FFFFFF', // White input background
+    backgroundColor: "#FFFFFF", // White input background
   },
   button: {
     padding: 15,
-    backgroundColor: '#4CAF50', // Green button
+    backgroundColor: "#4CAF50", // Green button
     borderRadius: 5,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 10,
   },
   buttonText: {
-    color: '#FFFFFF', // White text
+    color: "#FFFFFF", // White text
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   detailText: {
     fontSize: 18,
-    color: '#388E3C', // Dark Green text
+    color: "#388E3C", // Dark Green text
     marginBottom: 10,
   },
   productsSection: {
