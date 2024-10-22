@@ -1,33 +1,25 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  StyleProp,
-  ViewStyle,
-  TextStyle,
-} from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTheme } from "./context/ThemeProvider"; // Import your theme hook
 import { useAuth } from "./context/AuthContext";
-
-type Theme = "light" | "dark";
-
-interface SettingsScreenProps {
-  theme: Theme;
-}
+import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from "@/components/ThemedText";
+// Update the import path accordingly
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { isLoggedIn, signOut, checkAuthStatus } = useAuth();
+  const { signOut } = useAuth();
   const { colors } = useTheme(); // Use the theme hook
 
-  const [expandedSections, setExpandedSections] = useState<
-    Record<string, boolean>
-  >({
+  const [expandedSections, setExpandedSections] = useState<{
+    profile: boolean;
+    security: boolean;
+    preferences: boolean;
+    about: boolean;
+  }>({
     profile: false,
     security: false,
     preferences: false,
@@ -55,16 +47,14 @@ export default function SettingsScreen() {
       <SafeAreaView
         style={[styles.container, { backgroundColor: colors.background }]}
       >
-        <Text style={[styles.title, { color: colors.primary }]}>Settings</Text>
+        <ThemedText style={styles.title}>Settings</ThemedText>
 
         {/* Profile Section */}
         <Pressable
           style={styles.section}
           onPress={() => toggleSection("profile")}
         >
-          <Text style={[styles.optionText, { color: colors.primary }]}>
-            Profile
-          </Text>
+          <ThemedText style={styles.optionText}>Profile</ThemedText>
           <Ionicons
             name={
               expandedSections.profile
@@ -72,32 +62,31 @@ export default function SettingsScreen() {
                 : "chevron-down-outline"
             }
             size={24}
+            color={colors.primary}
           />
         </Pressable>
         {expandedSections.profile && (
-          <View style={styles.sectionContent}>
+          <ThemedView style={styles.sectionContent}>
             <Pressable
-              style={getOptionStyle(theme === "dark")}
+              style={styles.option}
               onPress={() => router.push("/profile")}
             >
               <Ionicons
                 name="person-outline"
                 size={24}
-                color={theme === "dark" ? "#E0E0E0" : "#388E3C"}
+                color={colors.primary}
               />
-              <Text style={getOptionTextStyle(theme === "dark")}>
-                Edit Profile
-              </Text>
+              <ThemedText style={styles.optionText}>Edit Profile</ThemedText>
             </Pressable>
-          </View>
+          </ThemedView>
         )}
 
         {/* Security Section */}
         <Pressable
-          style={getSectionHeaderStyle()}
+          style={styles.section}
           onPress={() => toggleSection("security")}
         >
-          <Text style={getTextStyle(theme === "dark")}>Security</Text>
+          <ThemedText style={styles.optionText}>Security</ThemedText>
           <Ionicons
             name={
               expandedSections.security
@@ -105,46 +94,44 @@ export default function SettingsScreen() {
                 : "chevron-down-outline"
             }
             size={24}
-            color={theme === "dark" ? "#E0E0E0" : "#388E3C"}
+            color={colors.primary}
           />
         </Pressable>
         {expandedSections.security && (
-          <View style={styles.sectionContent}>
+          <ThemedView style={styles.sectionContent}>
             <Pressable
-              style={getOptionStyle(theme === "dark")}
+              style={styles.option}
               onPress={() => router.push("/settings/reset-password")}
             >
               <Ionicons
                 name="lock-closed-outline"
                 size={24}
-                color={theme === "dark" ? "#E0E0E0" : "#388E3C"}
+                color={colors.primary}
               />
-              <Text style={getOptionTextStyle(theme === "dark")}>
-                Change Password
-              </Text>
+              <ThemedText style={styles.optionText}>Change Password</ThemedText>
             </Pressable>
             <Pressable
-              style={getOptionStyle(theme === "dark")}
+              style={styles.option}
               onPress={() => router.push("/settings/privacy")}
             >
               <Ionicons
                 name="shield-checkmark-outline"
                 size={24}
-                color={theme === "dark" ? "#E0E0E0" : "#388E3C"}
+                color={colors.primary}
               />
-              <Text style={getOptionTextStyle(theme === "dark")}>
+              <ThemedText style={styles.optionText}>
                 Privacy Settings
-              </Text>
+              </ThemedText>
             </Pressable>
-          </View>
+          </ThemedView>
         )}
 
         {/* Preferences Section */}
         <Pressable
-          style={getSectionHeaderStyle()}
+          style={styles.section}
           onPress={() => toggleSection("preferences")}
         >
-          <Text style={getTextStyle(theme === "dark")}>Preferences</Text>
+          <ThemedText style={styles.optionText}>Preferences</ThemedText>
           <Ionicons
             name={
               expandedSections.preferences
@@ -152,57 +139,51 @@ export default function SettingsScreen() {
                 : "chevron-down-outline"
             }
             size={24}
-            color={theme === "dark" ? "#E0E0E0" : "#388E3C"}
+            color={colors.primary}
           />
         </Pressable>
         {expandedSections.preferences && (
-          <View style={styles.sectionContent}>
+          <ThemedView style={styles.sectionContent}>
             <Pressable
-              style={getOptionStyle(theme === "dark")}
+              style={styles.option}
               onPress={() => router.push("/settings/notifications")}
             >
               <Ionicons
                 name="notifications-outline"
                 size={24}
-                color={theme === "dark" ? "#E0E0E0" : "#388E3C"}
+                color={colors.primary}
               />
-              <Text style={getOptionTextStyle(theme === "dark")}>
+              <ThemedText style={styles.optionText}>
                 Notification Settings
-              </Text>
+              </ThemedText>
             </Pressable>
             <Pressable
-              style={getOptionStyle(theme === "dark")}
+              style={styles.option}
               onPress={() => router.push("/settings/language")}
             >
-              <Ionicons
-                name="globe-outline"
-                size={24}
-                color={theme === "dark" ? "#E0E0E0" : "#388E3C"}
-              />
-              <Text style={getOptionTextStyle(theme === "dark")}>Language</Text>
+              <Ionicons name="globe-outline" size={24} color={colors.primary} />
+              <ThemedText style={styles.optionText}>Language</ThemedText>
             </Pressable>
             <Pressable
-              style={getOptionStyle(theme === "dark")}
+              style={styles.option}
               onPress={() => router.push("/settings/theme")}
             >
               <Ionicons
                 name="color-palette-outline"
                 size={24}
-                color={theme === "dark" ? "#E0E0E0" : "#388E3C"}
+                color={colors.primary}
               />
-              <Text style={getOptionTextStyle(theme === "dark")}>
-                Theme Settings
-              </Text>
+              <ThemedText style={styles.optionText}>Theme Settings</ThemedText>
             </Pressable>
-          </View>
+          </ThemedView>
         )}
 
         {/* About Section */}
         <Pressable
-          style={getSectionHeaderStyle()}
+          style={styles.section}
           onPress={() => toggleSection("about")}
         >
-          <Text style={getTextStyle(theme === "dark")}>About</Text>
+          <ThemedText style={styles.optionText}>About</ThemedText>
           <Ionicons
             name={
               expandedSections.about
@@ -210,26 +191,24 @@ export default function SettingsScreen() {
                 : "chevron-down-outline"
             }
             size={24}
-            color={theme === "dark" ? "#E0E0E0" : "#388E3C"}
+            color={colors.primary}
           />
         </Pressable>
         {expandedSections.about && (
-          <View style={styles.sectionContent}>
+          <ThemedView style={styles.sectionContent}>
             <Pressable
-              style={getOptionStyle(theme === "dark")}
+              style={styles.option}
               onPress={() => router.push("/settings/about")}
             >
               <Ionicons
                 name="information-circle-outline"
                 size={24}
-                color={theme === "dark" ? "#E0E0E0" : "#388E3C"}
+                color={colors.primary}
               />
-              <Text style={getOptionTextStyle(theme === "dark")}>
-                About Farmus
-              </Text>
+              <ThemedText style={styles.optionText}>About Farmus</ThemedText>
             </Pressable>
             <Pressable
-              style={getOptionStyle(theme === "dark")}
+              style={styles.option}
               onPress={() => {
                 handleSignOut();
                 router.push("/");
@@ -238,11 +217,11 @@ export default function SettingsScreen() {
               <Ionicons
                 name="log-out-outline"
                 size={24}
-                color={theme === "dark" ? "#E0E0E0" : "#388E3C"}
+                color={colors.primary}
               />
-              <Text style={getOptionTextStyle(theme === "dark")}>Sign Out</Text>
+              <ThemedText style={styles.optionText}>Sign Out</ThemedText>
             </Pressable>
-          </View>
+          </ThemedView>
         )}
       </SafeAreaView>
     </SafeAreaProvider>
@@ -259,15 +238,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
   },
-  sectionHeader: {
+  section: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 15,
     borderBottomWidth: 1,
-  },
-  sectionHeaderText: {
-    fontSize: 18,
   },
   sectionContent: {
     marginBottom: 15,

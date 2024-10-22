@@ -62,11 +62,11 @@ export default function HomeScreen() {
           setUpdateStatus("Updating, this may take a while...");
           await Updates.fetchUpdateAsync();
           await Updates.reloadAsync();
+          ToastAndroid.show("Updated", ToastAndroid.SHORT);
         }
       } catch (error) {
         console.log(error);
       } finally {
-        ToastAndroid.show("Updated", ToastAndroid.SHORT);
         SplashScreen.hideAsync();
         setIsReady(true);
       }

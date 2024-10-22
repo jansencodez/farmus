@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { useTheme } from "../context/ThemeProvider";
 import { baseUrl } from "../baseUrl";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 
 const PasswordResetRequestScreen = () => {
-  const { theme } = useTheme();
+  const { colors } = useTheme();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,26 +30,18 @@ const PasswordResetRequestScreen = () => {
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        theme === "dark" ? styles.darkContainer : styles.lightContainer,
-      ]}
+    <ThemedView
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <Text
-        style={[
-          styles.title,
-          theme === "dark" ? styles.darkTitle : styles.lightTitle,
-        ]}
-      >
+      <ThemedText style={[styles.title, { color: colors.text }]}>
         Reset Password
-      </Text>
+      </ThemedText>
       <TextInput
         style={styles.input}
         placeholder="Enter your email"
         value={email}
         onChangeText={setEmail}
-        placeholderTextColor={theme === "dark" ? "#A0A0A0" : "#888"}
+        placeholderTextColor={colors.secondary}
       />
       <Pressable
         style={[
@@ -57,21 +51,16 @@ const PasswordResetRequestScreen = () => {
         onPress={handleResetRequest}
         disabled={isSubmitting}
       >
-        <Text style={styles.buttonText}>
+        <ThemedText style={[styles.buttonText, { color: colors.text }]}>
           {isSubmitting ? "Sending..." : "Send Reset Link"}
-        </Text>
+        </ThemedText>
       </Pressable>
       {message && (
-        <Text
-          style={[
-            styles.message,
-            theme === "dark" ? styles.darkMessage : styles.lightMessage,
-          ]}
-        >
+        <ThemedText style={[styles.message, { color: colors.text }]}>
           {message}
-        </Text>
+        </ThemedText>
       )}
-    </View>
+    </ThemedView>
   );
 };
 
@@ -81,23 +70,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 20,
   },
-  darkContainer: {
-    backgroundColor: "#1E1E1E",
-  },
-  lightContainer: {
-    backgroundColor: "#F5F5F5",
-  },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
-  },
-  darkTitle: {
-    color: "#E0E0E0",
-  },
-  lightTitle: {
-    color: "#388E3C",
   },
   input: {
     height: 50,
@@ -120,7 +97,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#A0A0A0",
   },
   buttonText: {
-    color: "#FFF",
     fontSize: 18,
     fontWeight: "bold",
   },
@@ -128,12 +104,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textAlign: "center",
     fontSize: 16,
-  },
-  darkMessage: {
-    color: "#E0E0E0",
-  },
-  lightMessage: {
-    color: "#388E3C",
   },
 });
 

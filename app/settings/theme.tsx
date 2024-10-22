@@ -2,9 +2,11 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable, Switch } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeProvider";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 
 export default function ThemeSettingsScreen() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, colors } = useTheme();
   const isDarkMode = theme === "dark";
 
   const handleSwitchToggle = () => {
@@ -14,57 +16,34 @@ export default function ThemeSettingsScreen() {
   return (
     <SafeAreaProvider>
       <SafeAreaView
-        style={[
-          styles.container,
-          isDarkMode ? styles.darkContainer : styles.lightContainer,
-        ]}
+        style={[styles.container, { backgroundColor: colors.background }]}
       >
-        <Text
-          style={[
-            styles.title,
-            isDarkMode ? styles.darkTitle : styles.lightTitle,
-          ]}
-        >
+        <ThemedText style={[styles.title, { color: colors.primary }]}>
           Theme Settings
-        </Text>
-        <View
+        </ThemedText>
+        <ThemedView
           style={[
             styles.option,
             isDarkMode ? styles.darkOption : styles.lightOption,
           ]}
         >
-          <Text
-            style={[
-              styles.optionText,
-              isDarkMode ? styles.darkOptionText : styles.lightOptionText,
-            ]}
-          >
+          <ThemedText style={[styles.optionText, { color: colors.text }]}>
             Dark Mode
-          </Text>
+          </ThemedText>
           <Switch
-            trackColor={{ false: "#767577", true: "#388E3C" }}
-            thumbColor={isDarkMode ? "#fff" : "#f4f3f4"}
+            trackColor={colors.text}
+            thumbColor={colors.secondary}
             onValueChange={handleSwitchToggle}
             value={isDarkMode}
           />
-        </View>
+        </ThemedView>
         <Pressable
-          style={[
-            styles.saveButton,
-            isDarkMode ? styles.darkSaveButton : styles.lightSaveButton,
-          ]}
+          style={[styles.saveButton, { backgroundColor: colors.primary }]}
           onPress={() => console.log("Save Settings")}
         >
-          <Text
-            style={[
-              styles.saveButtonText,
-              isDarkMode
-                ? styles.darkSaveButtonText
-                : styles.lightSaveButtonText,
-            ]}
-          >
+          <ThemedText style={[styles.saveButtonText, { color: colors.text }]}>
             Save Changes
-          </Text>
+          </ThemedText>
         </Pressable>
       </SafeAreaView>
     </SafeAreaProvider>
