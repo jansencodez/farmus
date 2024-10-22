@@ -107,7 +107,9 @@ export default function HomeScreen() {
         setIsLoading(false);
 
         // Fetch user details
-        const userIds = processedProducts.map((product) => product.createdBy);
+        const userIds = processedProducts.map(
+          (product: {}) => product.createdBy
+        );
         const uniqueUserIds = Array.from(new Set(userIds));
 
         const userResponses = await Promise.all(
