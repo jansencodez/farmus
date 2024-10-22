@@ -201,7 +201,15 @@ export default function ProfileScreen() {
 
   if (!isLoggedIn || !user) {
     return (
-      <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />
+      <ThemedView
+        style={[styles.loader, { backgroundColor: colors.background }]}
+      >
+        <ActivityIndicator
+          size="large"
+          color={colors.tex}
+          style={[{ borderColor: colors.background }]}
+        />
+      </ThemedView>
     );
   }
 
