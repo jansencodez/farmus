@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useCurrentUser } from "./context/currentUserContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ProductCard from "@/components/custom/ProductCard";
 import AsyncStorage from "@react-native-async-storage/async-storage";

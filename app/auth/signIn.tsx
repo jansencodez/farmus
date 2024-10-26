@@ -13,6 +13,7 @@ import { baseUrl } from "../baseUrl";
 import { fetchWithTokenRefresh } from "../utils/auth";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeProvider";
+import { useCurrentUser } from "../context/currentUserContext";
 // Import the useTheme hook
 
 export default function SignInScreen() {
@@ -21,6 +22,7 @@ export default function SignInScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { signIn } = useAuth();
+  const { updateCurrentUser } = useCurrentUser();
 
   // Access theme colors
   const { colors } = useTheme();
@@ -51,10 +53,13 @@ export default function SignInScreen() {
         throw new Error("Token or refresh token is missing from response.");
       }
 
+      const user = JSON.parse(textResponse);
       const expirationTime = Date.now() + 60 * 60 * 1000;
 
       // Pass both token and refreshToken to signIn function
       await signIn(data.token, data.refreshToken, expirationTime);
+
+      await updateCurrentUser(user);
 
       // Navigate to profile page
       router.push("/profile");

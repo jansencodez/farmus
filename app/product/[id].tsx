@@ -13,16 +13,24 @@ import { useRouter } from "expo-router";
 import { useRoute } from "@react-navigation/native";
 import moment from "moment"; // Import moment for date calculations
 import { baseUrl } from "../baseUrl";
+import { useCart } from "../context/cartProvider";
+import { useCurrentUser } from "../context/currentUserContext";
 
 export default function ProductDetailScreen() {
   const router = useRouter();
   const route = useRoute();
   const { id } = route.params;
+  const { addToCart } = useCart();
+  const { currentUser } = useCurrentUser();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const handleAddToCart = () => {
+    console.log(currentUser.user.id);
+    addToCart(currentUser.user.id, product._id, product.price);
+  };
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -78,6 +86,9 @@ export default function ProductDetailScreen() {
         onPress={() => router.back()} // Navigate back to the previous screen
       >
         <Text style={styles.backButtonText}>Back</Text>
+      </Pressable>
+      <Pressable style={styles.backButton} onPress={handleAddToCart}>
+        <Text>Add to Cart</Text>
       </Pressable>
     </ScrollView>
   );

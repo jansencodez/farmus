@@ -1,36 +1,36 @@
+import React, { useEffect } from "react";
 import {
-  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
-  View,
 } from "react-native";
-import React, { useState } from "react";
 import { ThemedView } from "@/components/ThemedView";
-import { useRouter } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
+import { useRouter } from "expo-router";
 import { useTheme } from "../context/ThemeProvider";
+import { useCart } from "../context/cartProvider";
+import { useCurrentUser } from "../context/currentUserContext";
 
 const CartScreen = () => {
   const { colors } = useTheme();
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: "product 1", price: 100 },
-    { id: 2, name: "product 2", price: 390 },
-    { id: 3, name: "product 2", price: 390 },
-    { id: 4, name: "product 2", price: 30 },
-    { id: 5, name: "product 2", price: 390 },
-    { id: 6, name: "product 2", price: 390 },
-    { id: 7, name: "product 2", price: 900 },
-    { id: 8, name: "product 2", price: 390 },
-    { id: 9, name: "product 2", price: 390 },
-    { id: 10, name: "product 2", price: 390 },
-  ]);
-
+  const { cart = [], fetchCart, removeFromCart } = useCart();
+  const { currentUser } = useCurrentUser();
   const router = useRouter();
-  const removeItem = (itemId: number) => {
-    setCartItems(cartItems.filter((item) => item.id !== itemId));
+
+  useEffect(() => {
+    if (currentUser) {
+      console.log("Current User:", currentUser);
+      fetchCart(currentUser.user.id) // Fetch cart items if user is available
+        .then((data) => {
+          console.log("Cart fetched:", data); // Log fetched data for debugging
+        })
+        .catch((error) => console.error("Error fetching cart:", error));
+    }
+  }, [currentUser]);
+
+  const handleRemoveItem = (itemId) => {
+    removeFromCart(currentUser.user.id, itemId);
   };
 
   return (
@@ -39,33 +39,43 @@ const CartScreen = () => {
     >
       <ThemedView style={[styles.top, { backgroundColor: colors.background }]}>
         <ThemedText style={styles.title}>Your cart</ThemedText>
-        <TouchableOpacity style={styles.processButton}>
+        <TouchableOpacity
+          onPress={() => router.push("/cart/checkout")}
+          style={styles.processButton}
+        >
           <ThemedText style={[styles.processBtnText, { color: colors.text }]}>
-            process
+            Process
           </ThemedText>
         </TouchableOpacity>
       </ThemedView>
       <ScrollView>
-        {cartItems.length === 0 && (
+        {cart.length === 0 ? (
           <ThemedText>
             No items in cart (items added to cart will appear here)
           </ThemedText>
+        ) : (
+          cart.map((item) => {
+            // Convert Decimal128 price to number
+            const price = item.price ? parseFloat(item.price.toString()) : 0;
+
+            return (
+              <ThemedView key={item.id} style={styles.cartItem}>
+                <ThemedText>{item.name}</ThemedText>
+                <ThemedText
+                  style={{ color: "green", fontSize: 16, padding: 2 }}
+                >
+                  Ksh {price.toFixed(2)} {/* Display formatted price */}
+                </ThemedText>
+                <Pressable
+                  onPress={() => handleRemoveItem(item.id)}
+                  style={styles.rBtn}
+                >
+                  <ThemedText style={styles.removeButton}>Remove</ThemedText>
+                </Pressable>
+              </ThemedView>
+            );
+          })
         )}
-        {cartItems.length !== 0 &&
-          cartItems.map((item) => (
-            <ThemedView key={item.id} style={styles.cartItem}>
-              <ThemedText>{item.name}</ThemedText>
-              <ThemedText style={{ color: "green", fontSize: 16, padding: 2 }}>
-                Ksh{item.price}
-              </ThemedText>
-              <Pressable
-                onPress={() => removeItem(item.id)}
-                style={styles.rBtn}
-              >
-                <ThemedText style={styles.removeButton}>Remove</ThemedText>
-              </Pressable>
-            </ThemedView>
-          ))}
       </ScrollView>
     </ThemedView>
   );
@@ -102,7 +112,7 @@ const styles = StyleSheet.create({
     borderStartWidth: 1,
   },
   processBtnText: {
-    fontWeight: 700,
+    fontWeight: "700",
   },
   cartItem: {
     position: "relative",
@@ -124,16 +134,5 @@ const styles = StyleSheet.create({
   removeButton: {
     color: "red",
     textAlign: "center",
-    display: "flex",
-  },
-  checkoutButton: {
-    padding: 16,
-    backgroundColor: "#388E3C",
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  checkoutText: {
-    color: "#fff",
-    fontWeight: "bold",
   },
 });

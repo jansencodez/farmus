@@ -2,6 +2,8 @@ import { Stack } from "expo-router";
 import CustomHeader from "@/components/custom/CustomHeader"; // Adjust path as needed
 import { AuthProvider } from "./context/AuthContext"; // Adjust path as needed
 import { ThemeProvider } from "./context/ThemeProvider";
+import { CartProvider } from "./context/cartProvider";
+import { CurrentUserProvider } from "./context/currentUserContext";
 // Adjust path as needed
 
 function LayoutContent() {
@@ -38,7 +40,11 @@ export default function Layout() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <LayoutContent />
+        <CartProvider>
+          <CurrentUserProvider>
+            <LayoutContent />
+          </CurrentUserProvider>
+        </CartProvider>
       </ThemeProvider>
     </AuthProvider>
   );

@@ -14,6 +14,7 @@ import { useRouter } from "expo-router";
 import ProductCard from "@/components/custom/ProductCard"; // Adjust the import path as needed
 import { useAuth } from "@/app/context/AuthContext"; // Import the Auth context or hook
 import { useTheme } from "./context/ThemeProvider";
+import { useCurrentUser } from "./context/currentUserContext";
 import { baseUrl } from "./baseUrl";
 import { fetchWithTokenRefresh } from "./utils/auth";
 import * as Updates from "expo-updates";
