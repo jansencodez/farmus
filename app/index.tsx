@@ -249,9 +249,9 @@ export default function HomeScreen() {
         style={[
           styles.searchInput,
           {
-            borderColor: colors.secondary,
+            borderColor: colors.text,
             backgroundColor: colors.background,
-            color: colors.text,
+            color: colors.placeholder,
           },
         ]}
         placeholder="Search for products or farms..."
@@ -262,7 +262,12 @@ export default function HomeScreen() {
       {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
 
       {/* Featured Products */}
-      <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
+      <ThemedText
+        style={[
+          styles.sectionTitle,
+          { color: colors.text, borderColor: colors.text },
+        ]}
+      >
         Featured Products
       </ThemedText>
       {isLoading && (
