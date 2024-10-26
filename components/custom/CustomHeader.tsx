@@ -15,12 +15,24 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useTheme } from "@/app/context/ThemeProvider";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
+import { useCurrentUser } from "@/app/context/currentUserContext";
+import { useCart } from "@/app/context/cartProvider";
 
 export default function CustomHeader() {
+  const { cart, fetchCart } = useCart();
+  const { currentUser } = useCurrentUser();
   const [menuVisible, setMenuVisible] = useState(false);
   const router = useRouter();
   const { isLoggedIn, signOut, checkAuthStatus } = useAuth();
   const { theme, colors } = useTheme(); // Use colors from the theme
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchCart(currentUser.user.id); // Fetch cart items when the screen loads
+    }
+  }, [currentUser]);
+
+  const cartNum = cart ? cart.reduce((sum, item) => sum + item.quantity, 0) : 0;
 
   useEffect(() => {
     checkAuthStatus();
@@ -79,7 +91,7 @@ export default function CustomHeader() {
                 accessibilityLabel="10 items in cart"
               >
                 <ThemedText style={{ fontSize: 12, color: "white" }}>
-                  10
+                  {cartNum}
                 </ThemedText>
               </Pressable>
             </TouchableOpacity>

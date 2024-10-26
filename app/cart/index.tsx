@@ -59,8 +59,8 @@ const CartScreen = () => {
             const price = item.price ? parseFloat(item.price.toString()) : 0;
 
             return (
-              <ThemedView key={item.id} style={styles.cartItem}>
-                <ThemedText>{item.name}</ThemedText>
+              <ThemedView key={item.productId.id} style={styles.cartItem}>
+                <ThemedText>{item.productId.name}</ThemedText>
                 <ThemedText
                   style={{ color: "green", fontSize: 16, padding: 2 }}
                 >

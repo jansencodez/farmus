@@ -12,6 +12,9 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
 
   // In cartProvider or wherever fetchCart is defined
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const fetchCart = async (userId) => {
     try {
       const response = await fetch(
@@ -21,13 +24,21 @@ export const CartProvider = ({ children }) => {
         throw new Error("Failed to fetch cart");
       }
       const data = await response.json();
-      console.log("API Response:", data); // Log the full API response
-      setCart(data.items || []); // Adjust based on your API structure
-      return data;
+
+      // Map over items to handle Decimal128 conversion
+      const formattedItems = data.items.map((item) => ({
+        ...item,
+        price: parseFloat(item.price.$numberDecimal), // Convert price to a number
+        productId: {
+          ...item.productId,
+          price: parseFloat(item.productId.price.$numberDecimal), // Handle nested price
+        },
+      }));
+
+      setCart(formattedItems);
     } catch (error) {
       console.error("Error in fetchCart:", error);
       setCart([]); // Handle the error by setting cart to an empty array
-      return null;
     }
   };
 

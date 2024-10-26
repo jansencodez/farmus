@@ -1,9 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, Pressable, Alert, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useTheme } from '@/app/context/ThemeProvider';
-import moment from 'moment'; // Moment.js for time formatting
-import { fetchWithTokenRefresh } from '@/app/utils/auth';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Pressable,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { useTheme } from "@/app/context/ThemeProvider";
+import moment from "moment"; // Moment.js for time formatting
+import { fetchWithTokenRefresh } from "@/app/utils/auth";
+import { useCart } from "@/app/context/cartProvider";
 
 interface ProductCardProps {
   title: string;
@@ -40,12 +49,15 @@ export default function ProductCard({
   const productImage = imageUrl;
   const profilePicture = userProfilePicture;
   const router = useRouter();
-  const [timeSinceUpload, setTimeSinceUpload] = useState(moment(createdAt).fromNow());
-  const [isBuying, setIsBuying] = useState(false); // State to manage buying status
+  const [timeSinceUpload, setTimeSinceUpload] = useState(
+    moment(createdAt).fromNow()
+  );
+  const { cart, addToCart } = useCart();
+  const [isAdding, setIsAdding] = useState(false);
 
   // Handle image loading errors
   const handleImageError = (e: any) => {
-    e.target.src = 'https://via.placeholder.com/200'; // Fallback image
+    e.target.src = "https://via.placeholder.com/200"; // Fallback image
   };
 
   // Time since product was uploaded
@@ -58,36 +70,13 @@ export default function ProductCard({
   }, [createdAt]);
 
   // Function to handle buying the product
-  const handleBuy = async () => {
-    setIsBuying(true); // Set buying state to true
-    const amount = parseFloat(price); // Convert price to float
-
+  const handleAddToCart = async (userId, productId) => {
+    setIsAdding(true); // Set buying state to true
     try {
-      const response = await fetchWithTokenRefresh('https://farmus-wallet-backend.vercel.app/api/wallet/transact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          itemId: productId,
-          amount,
-          sellerId: userId,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        Alert.alert('Purchase Successful', data.message);
-        // Optionally refresh user balance or product list
-      } else {
-        Alert.alert('Error', data.message || 'Failed to purchase the product');
-      }
-    } catch (error) {
-      console.error('Error during purchase:', error);
-      Alert.alert('Error', 'An error occurred while processing your purchase');
+      await addToCart(userId, productId);
+    } catch (e) {
     } finally {
-      setIsBuying(false); // Reset buying state
+      setIsAdding(false); // Reset buying state
     }
   };
 
@@ -122,7 +111,11 @@ export default function ProductCard({
           />
         </Pressable>
         <Pressable
-          onPress={() => currentUserId === userId ? router.push('/profile') : router.push(`/users/${userId}`)}
+          onPress={() =>
+            currentUserId === userId
+              ? router.push("/profile")
+              : router.push(`/users/${userId}`)
+          }
           accessibilityLabel={`Go to ${username}'s profile`}
         >
           <Text style={styles.username}>{username}</Text>
@@ -140,7 +133,13 @@ export default function ProductCard({
         </Pressable>
         <Text style={styles.productPrice}>Ksh.{price}</Text>
         <Text style={styles.productCategory}>Category: {category}</Text>
-        <Text style={styles.productDescription} numberOfLines={1} ellipsizeMode='tail'>{description}</Text>
+        <Text
+          style={styles.productDescription}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {description}
+        </Text>
       </View>
 
       {/* Conditional Buttons */}
@@ -157,16 +156,15 @@ export default function ProductCard({
           </Pressable>
         </View>
       ) : (
-        // Show "Buy" button for non-posting users
         <Pressable
           style={styles.buyButton}
-          onPress={handleBuy}
-          disabled={isBuying} // Disable button during transaction
+          onPress={() => handleAddToCart(currentUserId, productId, price)}
+          disabled={isAdding}
         >
-          {isBuying ? (
+          {isAdding ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={styles.buyButtonText}>Buy</Text>
+            <Text style={styles.buyButtonText}>Add to Cart</Text>
           )}
         </Pressable>
       )}
@@ -180,23 +178,23 @@ const getStyles = (colors: any) => {
     card: {
       backgroundColor: colors.background,
       borderRadius: 10,
-      overflow: 'hidden',
+      overflow: "hidden",
       marginBottom: 20,
       elevation: 3,
       width: 160,
       height: 300,
     },
     productImage: {
-      width: '100%',
+      width: "100%",
       height: 110,
-      resizeMode: 'cover',
+      resizeMode: "cover",
     },
     details: {
       padding: 2,
     },
     productTitle: {
       fontSize: 18,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: colors.text,
     },
     productPrice: {
@@ -219,8 +217,8 @@ const getStyles = (colors: any) => {
       marginTop: 1,
     },
     userInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       padding: 2,
       borderTopWidth: 1,
       borderTopColor: colors.secondary,
@@ -236,40 +234,40 @@ const getStyles = (colors: any) => {
       color: colors.primary,
     },
     deleteButton: {
-      backgroundColor: '#F44336',
+      backgroundColor: "#F44336",
       padding: 10,
       borderRadius: 5,
-      alignItems: 'center',
+      alignItems: "center",
       marginTop: 10,
     },
     deleteButtonText: {
-      color: '#FFFFFF',
+      color: "#FFFFFF",
       fontSize: 16,
-      fontWeight: 'bold',
+      fontWeight: "bold",
     },
     buyButton: {
       backgroundColor: colors.primary,
       padding: 10,
       borderRadius: 5,
-      alignItems: 'center',
+      alignItems: "center",
       margin: 10,
     },
     buyButtonText: {
-      color: '#FFFFFF',
+      color: "#FFFFFF",
       fontSize: 16,
-      fontWeight: 'bold',
+      fontWeight: "bold",
     },
     labelContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       padding: 10,
       borderTopWidth: 1,
       borderTopColor: colors.secondary,
     },
     label: {
       fontSize: 16,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: colors.text,
     },
   });

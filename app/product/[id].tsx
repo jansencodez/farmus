@@ -15,6 +15,8 @@ import moment from "moment"; // Import moment for date calculations
 import { baseUrl } from "../baseUrl";
 import { useCart } from "../context/cartProvider";
 import { useCurrentUser } from "../context/currentUserContext";
+import { ThemedText } from "@/components/ThemedText";
+import { useTheme } from "../context/ThemeProvider";
 
 export default function ProductDetailScreen() {
   const router = useRouter();
@@ -22,14 +24,21 @@ export default function ProductDetailScreen() {
   const { id } = route.params;
   const { addToCart } = useCart();
   const { currentUser } = useCurrentUser();
+  const { colors } = useTheme();
+  const [isAdding, setIsAdding] = useState(false);
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const handleAddToCart = () => {
-    console.log(currentUser.user.id);
-    addToCart(currentUser.user.id, product._id, product.price);
+  const handleAddToCart = async () => {
+    setIsAdding(true);
+    try {
+      await addToCart(currentUser.user.id, product._id, product.price);
+    } catch (e) {
+    } finally {
+      setIsAdding(false);
+    }
   };
   useEffect(() => {
     const fetchProduct = async () => {
@@ -85,10 +94,19 @@ export default function ProductDetailScreen() {
         style={styles.backButton}
         onPress={() => router.back()} // Navigate back to the previous screen
       >
-        <Text style={styles.backButtonText}>Back</Text>
+        <Text style={[styles.backButtonText, { color: colors.text }]}>
+          Back
+        </Text>
       </Pressable>
-      <Pressable style={styles.backButton} onPress={handleAddToCart}>
-        <Text>Add to Cart</Text>
+      <Pressable
+        style={styles.backButton}
+        onPress={handleAddToCart}
+        disabled={isAdding}
+      >
+        {isAdding && <ActivityIndicator color="#FFFFFF" />}
+        {!isAdding && (
+          <ThemedText style={{ color: colors.text }}>Add to Cart</ThemedText>
+        )}
       </Pressable>
     </ScrollView>
   );
@@ -142,7 +160,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   backButtonText: {
-    color: "#FFFFFF", // White text
     fontSize: 16,
     fontWeight: "bold",
   },
