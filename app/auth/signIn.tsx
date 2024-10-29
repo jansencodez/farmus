@@ -77,7 +77,11 @@ export default function SignInScreen() {
       <TextInput
         style={[
           styles.input,
-          { borderColor: colors.secondary, backgroundColor: colors.background },
+          {
+            borderColor: colors.secondary,
+            backgroundColor: colors.background,
+            color: colors.text,
+          },
         ]} // Use theme colors
         placeholder="Email"
         value={email}
@@ -88,7 +92,11 @@ export default function SignInScreen() {
       <TextInput
         style={[
           styles.input,
-          { backgroundColor: colors.background, borderColor: colors.secondary },
+          {
+            backgroundColor: colors.background,
+            borderColor: colors.secondary,
+            color: colors.text,
+          },
         ]} // Use theme colors
         placeholder="Password"
         value={password}

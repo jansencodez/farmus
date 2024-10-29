@@ -104,7 +104,11 @@ export default function SignUpScreen() {
       <TextInput
         style={[
           styles.input,
-          { borderColor: colors.secondary, backgroundColor: colors.background },
+          {
+            borderColor: colors.secondary,
+            backgroundColor: colors.background,
+            color: colors.text,
+          },
         ]}
         placeholder="Email"
         placeholderTextColor={colors.placeholder}
@@ -115,7 +119,11 @@ export default function SignUpScreen() {
       <TextInput
         style={[
           styles.input,
-          { borderColor: colors.secondary, backgroundColor: colors.background },
+          {
+            borderColor: colors.secondary,
+            backgroundColor: colors.background,
+            color: colors.text,
+          },
         ]}
         placeholder="Password"
         placeholderTextColor={colors.placeholder}

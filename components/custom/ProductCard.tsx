@@ -213,7 +213,7 @@ const getStyles = (colors: any) => {
     },
     timeSinceUpload: {
       fontSize: 12,
-      color: colors.secondary,
+      color: colors.text,
       marginTop: 1,
     },
     userInfo: {

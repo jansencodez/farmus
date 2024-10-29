@@ -17,6 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRoute } from "@react-navigation/native";
 import { fetchWithTokenRefresh } from "../utils/auth";
 import { baseUrl } from "../baseUrl";
+import { useTheme } from "../context/ThemeProvider";
 
 export default function ProfileScreen() {
   const [user, setUser] = useState(null);
@@ -28,6 +29,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const route = useRoute();
   const { id } = route.params;
+  const { colors } = useTheme();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -158,7 +160,9 @@ export default function ProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <ActivityIndicator size="large" color="#0000ff" />
       </SafeAreaView>
     );
@@ -173,9 +177,13 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={styles.profileSection}>
-        <Text style={styles.title}>{user.name}'s profile</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          {user.name}'s profile
+        </Text>
 
         {isEditing ? (
           <>
@@ -224,6 +232,8 @@ export default function ProfileScreen() {
           renderItem={renderItem}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.productList}
+          numColumns={2} // Number of columns in the grid
+          columnWrapperStyle={styles.row}
         />
       </View>
     </SafeAreaView>
@@ -287,5 +297,8 @@ const styles = StyleSheet.create({
   },
   productList: {
     flexGrow: 1,
+  },
+  row: {
+    justifyContent: "space-evenly",
   },
 });
