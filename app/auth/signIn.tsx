@@ -77,7 +77,7 @@ export default function SignInScreen() {
       <TextInput
         style={[
           styles.input,
-          { backgroundColor: "#FFFFFF", borderColor: colors.secondary },
+          { borderColor: colors.secondary, backgroundColor: colors.background },
         ]} // Use theme colors
         placeholder="Email"
         value={email}
@@ -88,7 +88,7 @@ export default function SignInScreen() {
       <TextInput
         style={[
           styles.input,
-          { backgroundColor: "#FFFFFF", borderColor: colors.secondary },
+          { backgroundColor: colors.background, borderColor: colors.secondary },
         ]} // Use theme colors
         placeholder="Password"
         value={password}
@@ -113,11 +113,7 @@ export default function SignInScreen() {
         onPress={() => router.push("/auth/signup")}
         disabled={loading}
       >
-        {loading ? (
-          <ActivityIndicator color="#FFFFFF" />
-        ) : (
-          <Text style={styles.buttonText}>Sign Up</Text>
-        )}
+        <Text style={styles.buttonText}>Sign Up</Text>
       </Pressable>
     </View>
   );

@@ -77,24 +77,26 @@ export default function CustomHeader() {
           </ThemedText>
 
           <View style={styles.rightSection}>
-            <TouchableOpacity
-              onPress={() => {
-                router.push("/cart");
-              }}
-              style={styles.cart}
-              accessibilityLabel="View Cart"
-            >
-              <Ionicons name="cart-outline" size={30} color={colors.text} />
-              <Pressable
-                style={styles.itemsNumber}
-                accessible={true}
-                accessibilityLabel="10 items in cart"
+            {isLoggedIn && (
+              <TouchableOpacity
+                onPress={() => {
+                  router.push("/cart");
+                }}
+                style={styles.cart}
+                accessibilityLabel="View Cart"
               >
-                <ThemedText style={{ fontSize: 12, color: "white" }}>
-                  {cartNum}
-                </ThemedText>
-              </Pressable>
-            </TouchableOpacity>
+                <Ionicons name="cart-outline" size={30} color={colors.text} />
+                <Pressable
+                  style={styles.itemsNumber}
+                  accessible={true}
+                  accessibilityLabel="10 items in cart"
+                >
+                  <ThemedText style={{ fontSize: 12, color: "white" }}>
+                    {cartNum}
+                  </ThemedText>
+                </Pressable>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               onPress={toggleMenu}

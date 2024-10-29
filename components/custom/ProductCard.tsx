@@ -231,6 +231,7 @@ const getStyles = (colors: any) => {
     },
     username: {
       fontSize: 16,
+      fontWeight: "bold",
       color: colors.primary,
     },
     deleteButton: {
@@ -263,7 +264,7 @@ const getStyles = (colors: any) => {
       alignItems: "center",
       padding: 10,
       borderTopWidth: 1,
-      borderTopColor: colors.secondary,
+      borderTopColor: colors.text,
     },
     label: {
       fontSize: 16,
