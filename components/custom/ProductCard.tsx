@@ -70,10 +70,10 @@ export default function ProductCard({
   }, [createdAt]);
 
   // Function to handle buying the product
-  const handleAddToCart = async (userId, productId) => {
+  const handleAddToCart = async (userId, productId, price) => {
     setIsAdding(true); // Set buying state to true
     try {
-      await addToCart(userId, productId);
+      await addToCart(userId, productId, price);
     } catch (e) {
     } finally {
       setIsAdding(false); // Reset buying state

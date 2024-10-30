@@ -41,7 +41,7 @@ export default function HomeScreen() {
   const [updateStatus, setUpdateStatus] = useState("Checking for updates...");
 
   const router = useRouter();
-  const { isLoggedIn, checkAuthStatus } = useAuth();
+  const { isLoggedIn, checkAuthStatus, refreshAuthToken } = useAuth();
   const { colors } = useTheme();
 
   const [products, setProducts] = useState<Product[]>([]);
